@@ -1,0 +1,13 @@
+{
+  "name": "Ghar Ki Parchi",
+  "short_name": "Parchi",
+  "description": "Monthly ration list for the house, with quantities and brands.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF0EB",
+  "theme_color": "#0E5A42",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

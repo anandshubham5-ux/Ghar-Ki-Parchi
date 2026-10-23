@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ghar Ki Parchi – monthly ration list for the house, with quantities and brands.">
+<meta name="theme-color" content="#EDF0EB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C110E" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Parchi">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" id="touchIcon" href="icon.svg">
+<script>
+/* iPhone home-screen icons must be PNG: draw one from icon.svg */
+(function () {
+  var img = new Image();
+  img.onload = function () {
+    try {
+      var c = document.createElement('canvas'); c.width = c.height = 180;
+      c.getContext('2d').drawImage(img, 0, 0, 180, 180);
+      document.getElementById('touchIcon').href = c.toDataURL('image/png');
+    } catch (e) {}
+  };
+  img.src = 'icon.svg';
+})();
+</script>
+<title>Ghar Ki Parchi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Kalam:wght@400;700&family=Tiro+Devanagari+Hindi&display=swap">
+<style>
+/* Layout: a phone-first two-tab app. "Select" is a stack of collapsible
+   category cards (Aata, Daal, Masale…) with an item editor sheet for
+   quantity and brand; "Parchi" is the finished list drawn as a ruled
+   kirana slip in blue ballpoint, where bought items get struck through.
+   Palette: deep emerald for actions, brass for quantities and brands. */
+:root {
+  --bg: #EDF0EB;
+  --surface: #FFFFFF;
+  --surface-2: #F5F7F3;
+  --ink: #131915;
+  --muted: #687169;
+  --faint: #9AA29B;
+  --line: #E1E5DE;
+  --accent: #0E5A42;
+  --accent-2: #12704F;
+  --accent-soft: #E1EEE7;
+  --on-accent: #FFFFFF;
+  --brass: #94650F;
+  --brass-soft: #F6ECD6;
+  --paper: #FFFCEC;
+  --rule: #CCD8EA;
+  --margin: #E5A39C;
+  --pen: #1F2F63;
+  --strike: #B3362B;
+  --danger: #B3362B;
+  --bar: rgba(237, 240, 235, 0.86);
+  --scrim: rgba(10, 16, 12, 0.42);
+  --shadow: 0 1px 2px rgba(20, 35, 25, 0.05), 0 8px 24px rgba(20, 35, 25, 0.06);
+  --shadow-lg: 0 18px 50px rgba(20, 35, 25, 0.22);
+  --f-ui: 'Hind', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --f-hand: 'Kalam', 'Hind', 'Bradley Hand', cursive;
+  --f-deva: 'Tiro Devanagari Hindi', 'Hind', serif;
+  --r: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C110E; --surface: #151C18; --surface-2: #1B231E; --ink: #E8EDE8; --muted: #8E978F; --faint: #646D66; --line: #253029;
+    --accent: #5CC093; --accent-2: #74CFA5; --accent-soft: #19302A; --on-accent: #07130D;
+    --brass: #E2B25C; --brass-soft: #2B2416;
+    --paper: #1B1C15; --rule: #2D384A; --margin: #6B3A36; --pen: #D7DDF2; --strike: #E26A5C;
+    --danger: #E8705F; --bar: rgba(12, 17, 14, 0.86); --scrim: rgba(0, 0, 0, 0.62);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.45); --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C110E; --surface: #151C18; --surface-2: #1B231E; --ink: #E8EDE8; --muted: #8E978F; --faint: #646D66; --line: #253029;
+  --accent: #5CC093; --accent-2: #74CFA5; --accent-soft: #19302A; --on-accent: #07130D;
+  --brass: #E2B25C; --brass-soft: #2B2416;
+  --paper: #1B1C15; --rule: #2D384A; --margin: #6B3A36; --pen: #D7DDF2; --strike: #E26A5C;
+  --danger: #E8705F; --bar: rgba(12, 17, 14, 0.86); --scrim: rgba(0, 0, 0, 0.62);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45); --shadow-lg: 0 18px 50px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body { margin: 0; color: var(--ink); font: 400 16px/1.45 var(--f-ui); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+
+.app { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+
+/* ── Masthead ── */
+.mast { padding-top: 22px; padding-bottom: 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.eyebrow { margin: 0 0 2px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-spacing: -0.015em; text-wrap: balance; }
+.deva { display: block; margin-top: 4px; font-family: var(--f-deva); font-size: 1.05rem; color: var(--brass); line-height: 1.3; }
+.menu { flex: none; display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 99px; padding: 8px 14px 6px; margin-bottom: 4px; background: var(--surface); color: var(--accent); font-weight: 600; font-size: 0.9rem; box-shadow: var(--shadow); }
+.menu svg { width: 17px; height: 17px; margin-top: -2px; }
+.tip { display: flex; align-items: flex-start; gap: 12px; margin-top: 14px; padding: 12px 12px 12px 14px; border-radius: var(--r); background: var(--accent-soft); color: var(--ink); font-size: 0.88rem; line-height: 1.4; }
+.tip p { margin: 0; flex: 1; min-width: 0; }
+.tip strong { color: var(--accent); }
+.tip button { flex: none; border: 0; background: none; color: var(--muted); font-size: 1.2rem; line-height: 1; padding: 2px 4px; }
+.sheet-card > p.sheet-note { margin: 0; padding: 0 16px 14px; font-size: 0.8rem; color: var(--muted); text-align: center; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; color: var(--muted); white-space: nowrap; background: var(--surface); border-radius: 99px; padding: 5px 10px 3px; box-shadow: var(--shadow); margin-bottom: 4px; }
+.sync::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--faint); flex: none; margin-top: -2px; }
+.sync[data-s="synced"]::before { background: var(--accent); }
+.sync[data-s="saving"]::before { background: var(--brass); }
+.sync[data-s="error"]::before, .sync[data-s="readonly"]::before { background: var(--danger); }
+
+/* ── Sticky tool bar ── */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  margin-inline: -16px; padding: 10px 16px 10px;
+  background: var(--bar);
+  -webkit-backdrop-filter: saturate(1.6) blur(18px); backdrop-filter: saturate(1.6) blur(18px);
+  border-bottom: 1px solid var(--line);
+}
+.hd { display: grid; gap: 10px; }
+.search { position: relative; display: block; }
+.search svg { position: absolute; left: 12px; top: 50%; translate: 0 -50%; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+.search input { width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 11px 38px 9px 38px; background: var(--surface); color: var(--ink); font-size: 1rem; outline: none; -webkit-appearance: none; appearance: none; }
+.search input::placeholder { color: var(--faint); }
+.search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search input::-webkit-search-cancel-button { display: none; }
+.clear { position: absolute; right: 8px; top: 50%; translate: 0 -50%; width: 26px; height: 26px; border-radius: 50%; border: 0; background: var(--line); color: var(--muted); font-size: 1rem; line-height: 1; padding: 0; }
+
+.chips { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 12px 4px; font-size: 0.84rem; font-weight: 500; white-space: nowrap; color: var(--ink); }
+.chip b { display: inline-grid; place-items: center; min-width: 19px; height: 19px; padding: 2px 5px 0; margin-left: 6px; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 0.7rem; font-weight: 600; line-height: 1; vertical-align: 1px; }
+
+/* ── Catalog ── */
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 4px 10px; font-size: 0.86rem; color: var(--muted); }
+.toolbar strong { color: var(--ink); font-weight: 600; }
+.link { border: 0; background: none; color: var(--accent); font-weight: 600; font-size: 0.86rem; padding: 4px 0; }
+.catalog { display: grid; gap: 10px; }
+.group { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; scroll-margin-top: calc(var(--hh, 120px) + 12px); }
+.ghead { width: 100%; display: flex; align-items: center; gap: 12px; border: 0; background: none; padding: 12px 14px; text-align: left; }
+.seal { flex: none; min-width: 40px; height: 40px; padding: 5px 8px 0; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-family: var(--f-hand); font-weight: 700; font-size: 1rem; line-height: 1; }
+.group.has .seal { background: var(--accent); color: var(--on-accent); }
+.gname { flex: 1; min-width: 0; display: grid; }
+.gname .en { font-size: 1.05rem; font-weight: 600; line-height: 1.25; }
+.gname .hi { font-family: var(--f-deva); font-size: 0.86rem; color: var(--muted); line-height: 1.35; }
+.gcount { flex: none; font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.group.has .gcount { color: var(--accent); font-weight: 600; }
+.chev { flex: none; width: 18px; height: 18px; color: var(--faint); transition: transform 0.2s ease; }
+.group.open .chev { transform: rotate(180deg); }
+.gtools { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 0 14px 8px 66px; }
+.gtools .link { font-size: 0.82rem; }
+.gtools .link.danger { color: var(--danger); }
+
+.rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; position: relative; cursor: pointer; min-height: 60px; transition: background 0.12s; }
+.row:active { background: var(--surface-2); }
+.row + .row::before, .addrow::before { content: ''; position: absolute; top: 0; left: 52px; right: 0; height: 1px; background: var(--line); }
+.addrow { position: relative; }
+.tick { flex: none; width: 26px; height: 26px; border-radius: 50%; padding: 0; border: 1.75px solid var(--faint); background: transparent; color: var(--on-accent); display: grid; place-items: center; transition: background 0.15s, border-color 0.15s, transform 0.15s; }
+.tick svg { width: 14px; height: 14px; opacity: 0; transition: opacity 0.12s; }
+.row.on .tick { background: var(--accent); border-color: var(--accent); }
+.row.on .tick svg { opacity: 1; }
+.row:active .tick { transform: scale(0.9); }
+.label { flex: 1; min-width: 0; display: grid; justify-items: start; }
+.label .en { font-size: 0.98rem; font-weight: 500; line-height: 1.3; }
+.label .hi { font-family: var(--f-deva); font-size: 0.82rem; color: var(--muted); line-height: 1.35; }
+.brand { margin-top: 4px; border: 0; border-radius: 7px; padding: 3px 8px 1px; font-size: 0.76rem; font-weight: 600; line-height: 1.3; background: var(--brass-soft); color: var(--brass); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brand.empty { background: none; color: var(--accent); padding-inline: 0; font-weight: 500; }
+.qty { flex: none; min-width: 74px; max-width: 110px; text-align: center; border-radius: 10px; padding: 7px 10px 5px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); font-size: 0.88rem; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row.on .qty { background: var(--brass-soft); border-color: transparent; color: var(--brass); font-weight: 600; }
+.add { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; background: none; color: var(--accent); font-weight: 600; font-size: 0.94rem; padding: 14px 14px 12px; }
+.add i { font-style: normal; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); font-size: 1.1rem; line-height: 1; padding-top: 2px; }
+.newcat { width: 100%; margin-top: 4px; border: 1.5px dashed var(--line); background: none; border-radius: var(--r); padding: 16px 14px 14px; color: var(--accent); font-weight: 600; }
+.empty-search { text-align: center; color: var(--muted); padding: 40px 12px; background: var(--surface); border-radius: var(--r); }
+
+/* ── Parchi view ── */
+.progress { display: grid; gap: 6px; }
+.prog-text { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.prog-text strong { color: var(--ink); font-weight: 600; }
+.track { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width 0.3s ease; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--line); border-radius: 11px; padding: 2px; }
+.seg button { border: 0; background: none; border-radius: 9px; padding: 7px 4px 5px; font-size: 0.85rem; font-weight: 500; color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); font-weight: 600; }
+.actions { display: flex; gap: 8px; }
+.btn { border: 0; border-radius: 13px; padding: 11px 14px 9px; font-weight: 600; font-size: 0.92rem; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.btn svg { width: 17px; height: 17px; flex: none; }
+.btn.primary { flex: 1.6; white-space: nowrap; background: var(--accent); color: var(--on-accent); }
+.btn.quiet { flex: 1; background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+.btn.icon { flex: none; width: 46px; padding: 0; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+
+.paper {
+  --lh: 2.4rem;
+  margin-top: 18px; position: relative; border-radius: 6px;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, transparent 46px, var(--margin) 46px, var(--margin) 47.5px, transparent 47.5px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--lh) - 1px), var(--rule) calc(var(--lh) - 1px), var(--rule) var(--lh));
+  background-position: 0 0, 0 calc(var(--lh) * 1.5);
+  box-shadow: var(--shadow), 0 0 0 1px var(--line);
+  padding: calc(var(--lh) * 0.5) 14px calc(var(--lh) * 1.5) 56px;
+  color: var(--pen); font-family: var(--f-hand);
+}
+.paper::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 10px; background: radial-gradient(circle at 5px 0, var(--bg) 4px, transparent 4.5px) 0 0 / 14px 10px repeat-x; }
+.p-head { height: var(--lh); display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; padding-bottom: 4px; }
+.p-head .t { font-size: 1.35rem; font-weight: 700; line-height: 1; }
+.p-head .d { font-size: 0.95rem; opacity: 0.75; line-height: 1; }
+.p-cat { height: var(--lh); display: flex; align-items: flex-end; gap: 8px; padding-bottom: 5px; font-weight: 700; font-size: 1.1rem; line-height: 1; overflow: hidden; white-space: nowrap; }
+.p-cat span { font-weight: 400; font-size: 0.95rem; opacity: 0.7; }
+.p-list { list-style: none; margin: 0; padding: 0; }
+.line { position: relative; width: 100%; height: var(--lh); border: 0; background: none; padding: 0 0 5px; display: flex; align-items: flex-end; gap: 6px; text-align: left; color: var(--pen); font-family: var(--f-hand); font-size: 1.1rem; line-height: 1; }
+.line .n { position: absolute; left: -44px; width: 34px; text-align: right; font-size: 0.95rem; opacity: 0.6; font-variant-numeric: tabular-nums; }
+.line .box { flex: none; width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 4px; margin-bottom: 1px; display: grid; place-items: center; opacity: 0.7; }
+.line .box svg { width: 13px; height: 13px; opacity: 0; color: var(--strike); }
+.line .nm { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.line .nm small { font-size: 0.85rem; opacity: 0.7; margin-left: 4px; }
+.line .nm small.b { opacity: 0.85; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.line .lead { flex: 1 1 12px; min-width: 12px; border-bottom: 2px dotted currentColor; opacity: 0.25; margin-bottom: 4px; }
+.line .q { flex: none; font-weight: 700; white-space: nowrap; }
+.line::after { content: ''; position: absolute; left: 22px; right: 0; bottom: 13px; height: 2.5px; border-radius: 2px; background: var(--strike); transform: scaleX(0) rotate(-0.6deg); transform-origin: left center; transition: transform 0.28s ease; }
+.line.got::after { transform: scaleX(1) rotate(-0.6deg); }
+.line.got .nm, .line.got .q, .line.got .lead { opacity: 0.45; }
+.line.got .box { opacity: 1; color: var(--strike); }
+.line.got .box svg { opacity: 1; }
+.p-empty { min-height: calc(var(--lh) * 5); display: grid; align-content: start; }
+.p-empty p { margin: 0; height: var(--lh); display: flex; align-items: flex-end; padding-bottom: 5px; font-size: 1.1rem; line-height: 1; }
+.p-empty button { justify-self: start; margin-top: 10px; font-family: var(--f-ui); }
+.hint { text-align: center; font-size: 0.8rem; color: var(--muted); margin: 12px 0 0; }
+
+/* ── Floating CTA + tab bar ── */
+.cta { position: fixed; left: 50%; translate: -50% 0; z-index: 25; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); border: 0; border-radius: 99px; padding: 8px 8px 8px 20px; white-space: nowrap; background: var(--ink); color: var(--bg); font-weight: 600; font-size: 0.95rem; box-shadow: var(--shadow-lg); display: inline-flex; align-items: center; gap: 12px; }
+.cta b { display: grid; place-items: center; min-width: 30px; height: 30px; padding: 3px 8px 0; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 6px 16px calc(6px + env(safe-area-inset-bottom, 0px)); background: var(--bar); -webkit-backdrop-filter: saturate(1.6) blur(18px); backdrop-filter: saturate(1.6) blur(18px); border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; }
+.tab { position: relative; border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 4px 0; color: var(--faint); font-size: 0.72rem; font-weight: 600; }
+.tab svg { width: 25px; height: 25px; }
+.tab[aria-selected="true"] { color: var(--accent); }
+.badge { position: absolute; top: 0; left: calc(50% + 8px); min-width: 19px; height: 19px; padding: 2px 5px 0; border-radius: 99px; background: var(--danger); color: var(--on-accent); font-size: 0.7rem; line-height: 17px; font-variant-numeric: tabular-nums; }
+
+/* ── Sheets ── */
+.scrim { position: fixed; inset: 0; z-index: 50; background: var(--scrim); display: flex; align-items: flex-end; justify-content: center; padding: 0 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
+.sheet { width: 100%; max-width: 520px; max-height: calc(100% - 24px); overflow-y: auto; display: grid; gap: 8px; animation: rise 0.24s cubic-bezier(.2,.8,.2,1); }
+.sheet-card { background: var(--surface); border-radius: 18px; overflow: hidden; }
+.sheet-title { margin: 0; padding: 16px 16px 2px; text-align: center; font-weight: 600; font-size: 0.98rem; }
+.sheet-msg { margin: 0; padding: 0 16px 12px; text-align: center; font-size: 0.86rem; color: var(--muted); }
+.sheet-card > button.act, .sheet-cancel { width: 100%; border: 0; border-top: 1px solid var(--line); background: var(--surface); padding: 15px 16px 13px; font-size: 1.04rem; color: var(--accent); }
+.sheet-card > button.act.danger { color: var(--danger); }
+.sheet-cancel { border: 0; border-radius: 18px; font-weight: 600; }
+.sheet textarea { display: block; width: calc(100% - 24px); margin: 0 12px 12px; height: 220px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); padding: 10px; font: 0.85rem/1.45 var(--f-ui); }
+
+.ed { padding: 18px 16px 16px; display: grid; gap: 14px; }
+.ed-head { display: flex; align-items: center; gap: 12px; }
+.ed-head .t { margin: 0; font-size: 1.15rem; font-weight: 600; line-height: 1.25; }
+.ed-head .s { margin: 0; font-family: var(--f-deva); font-size: 0.86rem; color: var(--muted); }
+.fld { display: grid; gap: 6px; }
+.fld > span { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.fld input { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 11px 12px 9px; font-size: 1rem; outline: none; color: var(--ink); }
+.fld input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: var(--surface); }
+.sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+.sugg button { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 5px 11px 3px; font-size: 0.84rem; color: var(--ink); }
+.sugg button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.sugg.brands button.on { background: var(--brass-soft); border-color: var(--brass); color: var(--brass); font-weight: 600; }
+.ed-foot { display: flex; align-items: center; gap: 12px; padding-top: 2px; }
+.ed-foot .btn.primary { padding-block: 13px 11px; font-size: 1rem; }
+.ed-foot .link { flex: none; }
+@keyframes rise { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.toast { position: fixed; left: 50%; translate: -50% 0; z-index: 60; bottom: calc(132px + env(safe-area-inset-bottom, 0px)); max-width: calc(100% - 32px); padding: 10px 16px 8px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 0.9rem; font-weight: 500; text-align: center; box-shadow: var(--shadow-lg); animation: rise 0.2s ease; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="mast">
+    <div>
+      <p class="eyebrow" id="eyebrow">Mahine ka ration</p>
+      <h1>Ghar Ki Parchi<span class="deva">घर की पर्ची</span></h1>
+    </div>
+    <button class="menu" id="menuBtn" aria-label="Share, backup and settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg>
+      Share
+    </button>
+  </header>
+
+  <div class="bar" id="bar">
+    <div class="hd" id="hdSelect">
+      <label class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Search atta, jeera, Surf Excel…" autocomplete="off" aria-label="Search items or brands">
+        <button class="clear" id="clearSearch" type="button" aria-label="Clear search" hidden>×</button>
+      </label>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="hd" id="hdParchi" hidden>
+      <div class="progress">
+        <div class="prog-text"><span id="progA"></span><span id="progB"></span></div>
+        <div class="track"><div class="fill" id="fill"></div></div>
+      </div>
+      <div class="seg" id="seg">
+        <button data-f="all" aria-pressed="true">All</button>
+        <button data-f="left" aria-pressed="false">Baaki</button>
+        <button data-f="got" aria-pressed="false">Le liya</button>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="copyBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.6-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>
+          Send on WhatsApp
+        </button>
+        <button class="btn quiet" id="editBtn">Edit</button>
+        <button class="btn icon" id="resetBtn" aria-label="Start a new parchi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <main id="vSelect">
+    <div class="tip" id="tip" hidden></div>
+    <div class="toolbar"><span id="summary"></span><button class="link" id="expandAll"></button></div>
+    <div class="catalog" id="catalog"></div>
+  </main>
+
+  <main id="vParchi" hidden>
+    <div class="paper" id="paper"></div>
+    <p class="hint">Tap an item on the parchi once it's bought.</p>
+  </main>
+</div>
+
+<button class="cta" id="cta" hidden></button>
+
+<nav class="tabbar" role="tablist">
+  <button class="tab" role="tab" id="tabSelect" data-tab="select" aria-selected="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/></svg>
+    Select
+  </button>
+  <button class="tab" role="tab" id="tabParchi" data-tab="parchi" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>
+    Parchi
+    <span class="badge" id="badge" hidden></span>
+  </button>
+</nav>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(() => {
+  /* ── Brand suggestions shared by several items ── */
+  const B = {
+    atta: 'Aashirvaad,Pillsbury,Fortune,Shaktibhog,Patanjali,Chakki fresh',
+    flour: 'Rajdhani,Tata Sampann,Fortune,Aashirvaad,Patanjali',
+    rice: 'India Gate,Daawat,Kohinoor,Fortune,Lal Qilla',
+    dal: 'Tata Sampann,Fortune,Rajdhani,Patanjali,24 Mantra,Loose',
+    whole: 'Catch,MDH,Everest,Tata Sampann,Loose',
+    powder: 'MDH,Everest,Catch,Badshah,Tata Sampann',
+    dry: 'Happilo,Nutraj,Tulsi,Loose',
+    dairy: 'Amul,Mother Dairy,Ananda,Gowardhan',
+    puja: 'Cycle,Mangaldeep,Zed Black,Hari Darshan',
+    sauce: "Ching's Secret,Kissan,Maggi,Del Monte,Veeba",
+  };
+  const T = (s) => s.trim().split('\n').map((l) => {
+    const [id, en, hi, q, b = ''] = l.split('|').map((x) => x.trim());
+    return { id, en, hi, q, brands: (B[b] || b).split(',').map((x) => x.trim()).filter(Boolean) };
+  });
+
+  const CATS = [
+    { id: 'aata', seal: 'आ', en: 'Aata', hi: 'आटा', items: T(`
+      atta|Wheat atta|गेहूं का आटा|20 kg|atta
+      mgatta|Multigrain atta|मल्टीग्रेन आटा|5 kg|Aashirvaad,Pillsbury,Fortune
+      besan|Besan|बेसन|1 kg|flour
+      maida|Maida|मैदा|1 kg|flour
+      suji|Suji|सूजी|1 kg|flour
+      makka|Makki ka atta|मक्की का आटा|1 kg|Rajdhani,Sri Sri Tattva,Loose
+      bajra|Bajra atta|बाजरे का आटा|1 kg|Rajdhani,24 Mantra,Loose
+      ragi|Ragi atta|रागी आटा|500 g|24 Mantra,Aashirvaad
+      riceflour|Rice flour|चावल का आटा|500 g|Rajdhani,Double Horse
+      kuttu|Kuttu atta (vrat)|कुट्टू का आटा|500 g|Rajdhani,Tata Sampann
+      singhara|Singhara atta (vrat)|सिंघाड़े का आटा|500 g|Rajdhani,Tata Sampann`) },
+    { id: 'daal', seal: 'दा', en: 'Daal', hi: 'दालें', items: T(`
+      arhar|Arhar / toor dal|अरहर दाल|2 kg|dal
+      moong|Moong dal (dhuli)|धुली मूंग दाल|1 kg|dal
+      moongchilka|Moong dal chilka|छिलके वाली मूंग|1 kg|dal
+      sabutmoong|Sabut moong|साबुत मूंग|500 g|dal
+      masoor|Masoor dal|मसूर दाल|1 kg|dal
+      sabutmasoor|Sabut masoor|साबुत मसूर|500 g|dal
+      chanadal|Chana dal|चना दाल|1 kg|dal
+      urad|Sabut urad|साबुत उड़द|1 kg|dal
+      uraddhuli|Urad dal (dhuli)|धुली उड़द दाल|500 g|dal
+      rajma|Rajma|राजमा|1 kg|dal
+      kabuli|Kabuli chana|काबुली चना|1 kg|dal
+      kalachana|Kala chana|काला चना|1 kg|dal
+      lobia|Lobia|लोबिया|500 g|dal
+      soyachunks|Soya chunks|सोया बड़ी|500 g|Nutrela,Fortune`) },
+    { id: 'chawal', seal: 'धा', en: 'Rice & Grains', hi: 'चावल व अनाज', items: T(`
+      basmati|Basmati rice|बासमती चावल|5 kg|rice
+      sella|Daily rice (sella)|सेला चावल|5 kg|rice
+      brownrice|Brown rice|ब्राउन राइस|1 kg|India Gate,Daawat,24 Mantra
+      poha|Poha|पोहा|1 kg|flour
+      daliya|Daliya|दलिया|1 kg|flour
+      oats|Oats|ओट्स|1 kg|Quaker,Saffola,True Elements
+      sabudana|Sabudana|साबूदाना|500 g|Rajdhani,Tata Sampann
+      seviyan|Seviyan|सेवइयां|500 g|Bambino,MTR,Anil
+      murmura|Murmura|मुरमुरे|500 g|Loose
+      quinoa|Quinoa|क्विनोआ|500 g|True Elements,24 Mantra`) },
+    { id: 'tel', seal: 'ते', en: 'Oils & Ghee', hi: 'तेल व घी', items: T(`
+      sarson|Mustard oil (kachi ghani)|सरसों का तेल|5 L|Fortune,Engine,P Mark,Dhara,Patanjali
+      refined|Refined oil|रिफाइंड तेल|5 L|Fortune,Saffola,Sundrop,Dhara
+      ghee|Desi ghee|देसी घी|1 L|Amul,Mother Dairy,Patanjali,Gowardhan,Ananda
+      groundnut|Groundnut oil|मूंगफली का तेल|1 L|Fortune,Dhara
+      olive|Olive oil|जैतून का तेल|500 ml|Figaro,Borges,Del Monte
+      vanaspati|Vanaspati|वनस्पति घी|1 kg|Dalda,Gagan`) },
+    { id: 'sabut', seal: 'ख', en: 'Whole Masala', hi: 'खड़े मसाले', items: T(`
+      jeera|Jeera|जीरा|250 g|whole
+      rai|Rai|राई|100 g|whole
+      ajwain|Ajwain|अजवाइन|100 g|whole
+      saunf|Saunf|सौंफ|200 g|whole
+      methidana|Methi dana|मेथी दाना|100 g|whole
+      kalonji|Kalonji|कलौंजी|50 g|whole
+      sabutdhaniya|Sabut dhaniya|साबुत धनिया|100 g|whole
+      kalimirch|Kali mirch|काली मिर्च|100 g|whole
+      laung|Laung|लौंग|50 g|whole
+      elaichi|Choti elaichi|छोटी इलायची|50 g|whole
+      badielaichi|Badi elaichi|बड़ी इलायची|50 g|whole
+      dalchini|Dalchini|दालचीनी|50 g|whole
+      tejpatta|Tej patta|तेज पत्ता|25 g|whole
+      sabutmirch|Sabut lal mirch|साबुत लाल मिर्च|100 g|whole
+      shahijeera|Shahi jeera|शाही जीरा|25 g|whole
+      chakraphool|Chakra phool|चक्र फूल|25 g|whole
+      javitri|Javitri|जावित्री|10 g|whole
+      jaiphal|Jaiphal|जायफल|2|whole
+      khaskhas|Khas khas|खसखस|50 g|whole
+      imli|Imli|इमली|250 g|Loose,Tamicon`) },
+    { id: 'powder', seal: 'पि', en: 'Masala Powder', hi: 'पिसे मसाले', items: T(`
+      haldi|Haldi|हल्दी|500 g|powder
+      mirch|Lal mirch|लाल मिर्च|250 g|powder
+      kashmiri|Kashmiri lal mirch|कश्मीरी लाल मिर्च|100 g|powder
+      dhaniya|Dhaniya powder|धनिया पाउडर|250 g|powder
+      jeerapowder|Jeera powder|जीरा पाउडर|100 g|powder
+      garam|Garam masala|गरम मसाला|100 g|powder
+      kitchenking|Kitchen King|किचन किंग|100 g|powder
+      sabzimasala|Sabzi masala|सब्ज़ी मसाला|100 g|powder
+      cholemasala|Chhole masala|छोले मसाला|100 g|powder
+      rajmamasala|Rajma masala|राजमा मसाला|100 g|powder
+      meatmasala|Meat masala|मीट मसाला|100 g|powder
+      chickenmasala|Chicken masala|चिकन मसाला|100 g|powder
+      biryani|Biryani masala|बिरयानी मसाला|50 g|powder
+      chaat|Chaat masala|चाट मसाला|100 g|powder
+      amchur|Amchur|अमचूर|100 g|powder
+      pavbhaji|Pav bhaji masala|पाव भाजी मसाला|100 g|powder
+      sambhar|Sambhar masala|सांभर मसाला|100 g|powder
+      mirchpowder|Kali mirch powder|काली मिर्च पाउडर|50 g|powder
+      hing|Hing|हींग|50 g|Everest,LG,MDH,Catch
+      methi|Kasuri methi|कसूरी मेथी|50 g|MDH,Everest,Catch
+      sonth|Sonth|सोंठ|50 g|powder`) },
+    { id: 'meetha', seal: 'चि', en: 'Sugar, Salt & Gud', hi: 'चीनी, नमक, गुड़', items: T(`
+      cheeni|Sugar|चीनी|5 kg|Madhur,Dhampure,Loose
+      namak|Salt|नमक|2 kg|Tata,Aashirvaad,Catch
+      sendha|Sendha namak|सेंधा नमक|500 g|Tata,Patanjali,Catch
+      kalanamak|Kala namak|काला नमक|200 g|Catch,MDH
+      gud|Gud|गुड़|1 kg|Patanjali,Loose
+      shakkar|Shakkar / desi khand|शक्कर|1 kg|Patanjali,Loose
+      mishri|Mishri|मिश्री|250 g|Loose`) },
+    { id: 'chai', seal: 'टी', en: 'Tea & Coffee', hi: 'चाय, कॉफ़ी', items: T(`
+      chaipatti|Tea leaves|चाय पत्ती|1 kg|Tata Tea Gold,Red Label,Taj Mahal,Wagh Bakri
+      greentea|Green tea|ग्रीन टी|1 box|Lipton,Tetley,Organic India
+      coffee|Coffee|कॉफ़ी|200 g|Nescafé,Bru,Davidoff
+      chaimasala|Chai masala|चाय मसाला|50 g|Everest,MDH,Catch`) },
+    { id: 'dairy', seal: 'दू', en: 'Dairy, Eggs & Bread', hi: 'दूध, अंडे, ब्रेड', items: T(`
+      milk|Milk|दूध|30 L|dairy
+      paneer|Paneer|पनीर|1 kg|dairy
+      dahi|Dahi|दही|2 kg|dairy
+      butter|Butter|मक्खन|500 g|Amul,Mother Dairy,Britannia
+      cheese|Cheese slices|चीज़ स्लाइस|1 pkt|Amul,Britannia,Go
+      cream|Fresh cream|फ्रेश क्रीम|2 pkt|Amul,Mother Dairy
+      condensed|Condensed milk|मिल्कमेड|1 tin|Nestlé Milkmaid,Amul Mithaimate
+      eggs|Eggs|अंडे|30|Loose,Keggs,Eggoz
+      bread|Bread|ब्रेड|4 pkt|Harvest Gold,Britannia,English Oven,Modern
+      pav|Pav|पाव|2 pkt|Harvest Gold,Britannia`) },
+    { id: 'sabzi', seal: 'आलू', en: 'Aloo, Pyaz & Staples', hi: 'आलू, प्याज़', items: T(`
+      aloo|Aloo|आलू|10 kg|Loose
+      pyaz|Pyaz|प्याज़|10 kg|Loose
+      tamatar|Tamatar|टमाटर|5 kg|Loose
+      lahsun|Lahsun|लहसुन|500 g|Loose
+      adrak|Adrak|अदरक|500 g|Loose
+      harimirch|Hari mirch|हरी मिर्च|250 g|Loose
+      nimbu|Nimbu|नींबू|12|Loose
+      gingergarlic|Ginger-garlic paste|अदरक-लहसुन पेस्ट|1 jar|Smith & Jones,Dr. Oetker`) },
+    { id: 'nashta', seal: 'ना', en: 'Breakfast & Spreads', hi: 'नाश्ता', items: T(`
+      cornflakes|Cornflakes|कॉर्नफ्लेक्स|1 box|Kellogg's,Bagrry's
+      muesli|Muesli|मूसली|1 box|Kellogg's,Bagrry's,Yoga Bar
+      rusk|Rusk|रस्क|2 pkt|Britannia,Bonn,Parle
+      jam|Jam|जैम|1 jar|Kissan,Mapro
+      peanutbutter|Peanut butter|पीनट बटर|1 jar|Pintola,MyFitness,Sundrop
+      chocspread|Chocolate spread|चॉकलेट स्प्रेड|1 jar|Nutella,Hershey's`) },
+    { id: 'snacks', seal: 'बि', en: 'Snacks', hi: 'नमकीन, बिस्कुट', items: T(`
+      biscuit|Biscuits|बिस्कुट|6 pkt|Parle-G,Britannia Marie Gold,Good Day,Sunfeast
+      cookies|Cookies|कुकीज़|2 pkt|Unibic,Dark Fantasy,Britannia
+      namkeen|Namkeen mix|नमकीन|1 kg|Haldiram's,Bikaji,Bikanervala
+      bhujia|Aloo bhujia|आलू भुजिया|400 g|Haldiram's,Bikaji
+      chips|Chips|चिप्स|4 pkt|Lay's,Bingo,Uncle Chipps
+      mathri|Mathri|मठरी|500 g|Loose,Haldiram's
+      khakhra|Khakhra|खाखरा|1 pkt|Induben,Loose
+      peanuts|Roasted peanuts|भुनी मूंगफली|500 g|Haldiram's,Loose
+      roastmakhana|Roasted makhana|भुने मखाने|2 pkt|Farmley,Happilo
+      chocolate|Chocolates|चॉकलेट|4|Cadbury,Amul,Nestlé
+      cake|Cake / muffins|केक|2 pkt|Britannia,Winkies
+      popcorn|Popcorn|पॉपकॉर्न|2 pkt|Act II`) },
+    { id: 'instant', seal: 'इं', en: 'Instant & Baking', hi: 'इंस्टेंट व बेकिंग', items: T(`
+      maggi|Maggi noodles|मैगी|12 pkt|Maggi,Yippee,Top Ramen
+      pasta|Pasta|पास्ता|1 kg|Del Monte,Borges,Sunfeast
+      noodles|Hakka noodles|हक्का नूडल्स|2 pkt|Ching's Secret,Capital Foods
+      soup|Soup packets|सूप|6 pkt|Knorr,Maggi,Ching's Secret
+      readymix|Ready mixes|रेडी मिक्स|2 pkt|MTR,Gits,Aashirvaad
+      custard|Custard powder|कस्टर्ड पाउडर|1 pkt|Weikfield,Brown & Polson
+      cornflour|Cornflour|कॉर्नफ्लोर|200 g|Weikfield,Brown & Polson
+      bakingsoda|Baking soda|खाने का सोडा|100 g|Weikfield,Tata
+      bakingpowder|Baking powder|बेकिंग पाउडर|100 g|Weikfield
+      eno|Eno|ईनो|6 pkt|Eno`) },
+    { id: 'sauces', seal: 'अ', en: 'Sauces, Pickles & Papad', hi: 'सॉस, अचार, पापड़', items: T(`
+      ketchup|Tomato ketchup|टोमैटो सॉस|1 kg|Kissan,Maggi,Heinz
+      soyasauce|Soya sauce|सोया सॉस|1 bottle|sauce
+      greenchilli|Green chilli sauce|हरी मिर्च सॉस|1 bottle|sauce
+      redchilli|Red chilli sauce|लाल मिर्च सॉस|1 bottle|sauce
+      vinegar|Vinegar|सिरका|1 bottle|sauce
+      schezwan|Schezwan chutney|शेज़वान चटनी|1 jar|Ching's Secret
+      mayo|Mayonnaise|मेयोनीज़|1 jar|Veeba,Funfoods,Del Monte
+      imlichutney|Imli chutney|इमली की चटनी|1 bottle|Maggi,Haldiram's
+      achaar|Achaar|अचार|1 kg|Mother's Recipe,Nilon's,Priya,Ghar ka
+      murabba|Amla murabba|आंवला मुरब्बा|1 kg|Patanjali,Dabur,Baidyanath
+      papad|Papad|पापड़|2 pkt|Lijjat,Haldiram's`) },
+    { id: 'mewa', seal: 'मे', en: 'Dry Fruits & Seeds', hi: 'मेवे व बीज', items: T(`
+      badam|Badam|बादाम|500 g|dry
+      kaju|Kaju|काजू|250 g|dry
+      kishmish|Kishmish|किशमिश|250 g|dry
+      akhrot|Akhrot|अखरोट|250 g|dry
+      pista|Pista|पिस्ता|100 g|dry
+      anjeer|Anjeer|अंजीर|250 g|dry
+      khajoor|Khajoor|खजूर|500 g|Lion,Happilo,Loose
+      makhana|Makhana|मखाना|200 g|dry
+      chironji|Chironji|चिरौंजी|50 g|dry
+      flax|Alsi (flax seeds)|अलसी|200 g|True Elements,Loose
+      chia|Chia seeds|चिया सीड्स|200 g|True Elements,Happilo
+      pumpkinseeds|Pumpkin seeds|कद्दू के बीज|200 g|True Elements,Happilo`) },
+    { id: 'health', seal: 'से', en: 'Health Supplements', hi: 'सेहत', items: T(`
+      chyawanprash|Chyawanprash|च्यवनप्राश|1 kg|Dabur,Patanjali,Baidyanath
+      honey|Honey|शहद|500 g|Dabur,Saffola,Patanjali
+      healthdrink|Health drink|हेल्थ ड्रिंक|1 kg|Bournvita,Horlicks,Complan,Boost
+      protein|Protein powder|प्रोटीन पाउडर|1 kg|MuscleBlaze,Optimum Nutrition,Protinex,Ensure
+      multivit|Multivitamin|मल्टीविटामिन|1 bottle|Supradyn,Revital H,HealthKart
+      calcium|Calcium + D3|कैल्शियम|1 bottle|Shelcal,Calcimax
+      omega|Omega-3 / fish oil|ओमेगा-3|1 bottle|HealthKart,Seven Seas
+      isabgol|Isabgol|ईसबगोल|100 g|Sat Isabgol,Dabur
+      amlajuice|Amla juice|आंवला जूस|1 L|Patanjali,Kapiva
+      aloejuice|Aloe vera juice|एलोवेरा जूस|1 L|Patanjali,Kapiva
+      giloy|Giloy|गिलोय|1 bottle|Patanjali,Himalaya,Dabur
+      triphala|Triphala churna|त्रिफला चूर्ण|100 g|Patanjali,Dabur,Baidyanath
+      ashwagandha|Ashwagandha|अश्वगंधा|1 bottle|Himalaya,Patanjali,Dabur
+      glucose|Glucose powder|ग्लूकोज़|500 g|Glucon-D,Dabur
+      ors|ORS|ओआरएस|10 pkt|Electral,Enerzal`) },
+    { id: 'drinks', seal: 'पे', en: 'Beverages', hi: 'शरबत व पेय', items: T(`
+      sharbat|Sharbat|शरबत|1 bottle|Rooh Afza,Dabur,Patanjali
+      drinkmix|Drink mix|ड्रिंक मिक्स|500 g|Tang,Rasna
+      juice|Fruit juice|जूस|2 L|Real,Tropicana,Paper Boat
+      colddrink|Cold drinks|कोल्ड ड्रिंक|2 bottles|Thums Up,Coca-Cola,Pepsi,Limca
+      water|Drinking water jar|पानी का जार|4|Bisleri,Kinley,Aquafina`) },
+    { id: 'puja', seal: 'पू', en: 'Puja Samagri', hi: 'पूजा सामग्री', items: T(`
+      agarbatti|Agarbatti|अगरबत्ती|2 pkt|puja
+      dhoop|Dhoop batti|धूप बत्ती|1 pkt|puja
+      kapoor|Kapoor|कपूर|1 pkt|puja
+      ruibatti|Rui batti|रुई की बत्ती|1 pkt|Loose
+      diya|Mitti ke diye|मिट्टी के दीये|12|Loose
+      pujaghee|Ghee for diya|दीपक का घी|500 ml|Patanjali,Amul
+      tilkatel|Til ka tel|तिल का तेल|500 ml|Patanjali,Loose
+      roli|Roli|रोली|1 pkt|Loose
+      chandan|Chandan|चंदन|1 pkt|Loose
+      sindoor|Sindoor|सिंदूर|1 pkt|Loose
+      akshat|Akshat chawal|अक्षत|100 g|Loose
+      haldigaanth|Haldi gaanth|हल्दी की गांठ|50 g|Loose
+      kalava|Kalava / moli|कलावा|2|Loose
+      janeu|Janeu|जनेऊ|2|Loose
+      supari|Supari|सुपारी|50 g|Loose
+      batashe|Batashe|बताशे|250 g|Loose
+      nariyal|Nariyal|नारियल|2|Loose
+      gangajal|Gangajal|गंगाजल|1 bottle|Loose
+      havan|Havan samagri|हवन सामग्री|500 g|Loose,Patanjali
+      lalkapda|Laal kapda|लाल कपड़ा|1 m|Loose
+      machis|Matchbox|माचिस|10|Ship,Homelites`) },
+    { id: 'safai', seal: 'स', en: 'Cleaning & Laundry', hi: 'सफ़ाई व धुलाई', items: T(`
+      detergent|Detergent powder|कपड़े धोने का पाउडर|3 kg|Surf Excel,Ariel,Tide,Wheel,Ghadi
+      liquid|Liquid detergent|लिक्विड डिटर्जेंट|2 L|Surf Excel,Ariel,Tide
+      softener|Fabric conditioner|फ़ैब्रिक कंडीशनर|1 L|Comfort,Lenor
+      detbar|Detergent bar|कपड़े धोने का साबुन|4|Rin,Surf Excel,Wheel
+      bartanbar|Dishwash bar|बर्तन साबुन|6|Vim,Exo,Pril
+      bartanliq|Dishwash liquid|बर्तन लिक्विड|1 L|Vim,Pril,Exo
+      floor|Floor cleaner|फ़र्श क्लीनर|2 L|Lizol,Domex
+      toilet|Toilet cleaner|टॉयलेट क्लीनर|2|Harpic,Domex
+      bathroom|Bathroom cleaner|बाथरूम क्लीनर|1|Harpic,Lizol
+      glass|Glass cleaner|ग्लास क्लीनर|1|Colin
+      phenyl|Phenyl|फिनाइल|1 L|Loose
+      scrub|Scrub pads|स्क्रब|4|Scotch-Brite,Vim
+      steelwool|Steel wool|स्टील वूल|4|Scotch-Brite
+      jhadu|Jhadu|झाड़ू|1|Loose
+      pocha|Pocha / duster|पोछा|2|Loose,Gala
+      naphthalene|Naphthalene balls|फिनाइल की गोलियां|1 pkt|Odonil,Loose
+      airfresh|Air freshener|एयर फ्रेशनर|2|Odonil,Ambi Pur,Godrej aer`) },
+    { id: 'ghar', seal: 'घ', en: 'Kitchen & Home Supplies', hi: 'रसोई व घर', items: T(`
+      garbage|Garbage bags|कूड़े की थैली|3 pkt|Ezee,Presto
+      foil|Aluminium foil|एल्युमिनियम फ़ॉयल|1 roll|Freshwrapp,Ezee,Presto
+      cling|Cling wrap|क्लिंग रैप|1 roll|Freshwrapp,Ezee
+      butterpaper|Butter paper|बटर पेपर|1 roll|Freshwrapp,Loose
+      kitchentowel|Kitchen towels|किचन टॉवल|2 rolls|Origami,Premier
+      napkins|Paper napkins|पेपर नैपकिन|2 pkt|Origami,Premier
+      ziplock|Zip-lock bags|ज़िप लॉक बैग|1 pkt|Ezee,Presto
+      lighter|Gas lighter|गैस लाइटर|1|Prestige,Pigeon
+      candles|Candles|मोमबत्ती|1 pkt|Loose
+      batteries|Batteries|बैटरी|4|Duracell,Eveready,Panasonic
+      bulb|Bulb / tubelight|बल्ब|2|Philips,Syska,Wipro
+      mosquitorefill|Mosquito repellent refill|मच्छर रिफिल|2|Good Knight,All Out,Mortein
+      coil|Mosquito coil|मच्छर कॉइल|1 pkt|Good Knight,Mortein
+      cockroach|Cockroach spray|कॉकरोच स्प्रे|1|Hit,Mortein`) },
+    { id: 'nijee', seal: 'नि', en: 'Personal Care', hi: 'नहाना-धोना', items: T(`
+      sabun|Bath soap|नहाने का साबुन|10|Lux,Dove,Lifebuoy,Pears,Santoor,Dettol
+      bodywash|Body wash|बॉडी वॉश|1|Dove,Nivea,Fiama
+      shampoo|Shampoo|शैम्पू|650 ml|Clinic Plus,Head & Shoulders,Dove,Pantene,Sunsilk
+      conditioner|Conditioner|कंडीशनर|1|Dove,Pantene,TRESemmé
+      paste|Toothpaste|टूथपेस्ट|4|Colgate,Pepsodent,Close-Up,Dabur Red,Sensodyne
+      brush|Toothbrush|टूथब्रश|5|Colgate,Oral-B
+      hairoil|Hair oil|बालों का तेल|500 ml|Parachute,Dabur Amla,Bajaj Almond,Navratna
+      handwash|Handwash refill|हैंडवॉश|2|Dettol,Lifebuoy,Savlon
+      facewash|Face wash|फ़ेस वॉश|2|Himalaya,Garnier,Pond's
+      moisturiser|Moisturiser / cold cream|क्रीम|1|Nivea,Vaseline,Pond's,Boroplus
+      shaving|Shaving cream|शेविंग क्रीम|1|Gillette,Old Spice,Park Avenue
+      razor|Razor / blades|रेज़र|1 pkt|Gillette
+      deo|Deodorant|डियोडोरेंट|2|Fogg,Nivea,Axe,Engage
+      talc|Talcum powder|पाउडर|1|Pond's,Cinthol,Navratna
+      sanitary|Sanitary pads|सैनिटरी पैड|2 pkt|Whisper,Stayfree,Sofy
+      toilettissue|Toilet tissue|टॉयलेट टिश्यू|4 rolls|Origami,Selpak
+      earbuds|Cotton & earbuds|रुई व ईयरबड|1 pkt|Johnson's,Loose
+      sanitizer|Hand sanitizer|सैनिटाइज़र|1|Dettol,Lifebuoy,Savlon
+      mouthwash|Mouthwash|माउथवॉश|1|Listerine,Colgate Plax`) },
+    { id: 'dawai', seal: 'द', en: 'Medicine Box', hi: 'दवाई का डिब्बा', items: T(`
+      antiseptic|Antiseptic liquid|एंटीसेप्टिक|1|Dettol,Savlon
+      bandaid|Band-aid|बैंड-एड|1 box|Band-Aid,Hansaplast
+      cottonroll|Cotton roll|रुई|1|Loose
+      fevertab|Fever / pain tablets|बुखार की गोली|1 strip|Crocin,Dolo 650,Calpol
+      balm|Balm / VapoRub|बाम|1|Vicks VapoRub,Zandu,Amrutanjan
+      painrelief|Pain relief spray|दर्द निवारक स्प्रे|1|Moov,Volini,Iodex
+      digestive|Digestive|हाज़मा|1|Hajmola,Pudin Hara
+      antiseptcream|Antiseptic cream|एंटीसेप्टिक क्रीम|1|Boroline,Burnol,Soframycin`) },
+  ];
+
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  const CHEV = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+  const LKEY = 'ghar-ki-parchi-v3';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+  const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  /* ── State: what is picked, quantities, brands, bought, and anything added ── */
+  function norm(d) {
+    const o = d || {};
+    const obj = (x) => (x && typeof x === 'object' && !Array.isArray(x) ? { ...x } : {});
+    const str = (x) => String(x ?? '');
+    return {
+      sel: obj(o.sel), qty: obj(o.qty), brand: obj(o.brand), got: obj(o.got),
+      custom: Array.isArray(o.custom) ? o.custom.filter((c) => c && c.id && c.cat && c.en).map((c) => ({ id: str(c.id), cat: str(c.cat), en: str(c.en), hi: str(c.hi), q: str(c.q) })) : [],
+      cats: Array.isArray(o.cats) ? o.cats.filter((c) => c && c.id && c.en).map((c) => ({ id: str(c.id), en: str(c.en), hi: str(c.hi) })) : [],
+    };
+  }
+  let S = norm(store.get(LKEY, null));
+  let tab = store.get(LKEY + ':tab', 'select') === 'parchi' ? 'parchi' : 'select';
+  let open = new Set(store.get(LKEY + ':open', ['aata']));
+  let filter = 'all';
+
+  const allCats = () => CATS.concat(S.cats.map((c) => ({ ...c, seal: (c.en.trim()[0] || '•').toUpperCase(), items: [], custom: true })));
+  const catById = (id) => allCats().find((c) => c.id === id);
+  const itemsOf = (c) => c.items.map((it) => ({ ...it, cat: c.id }))
+    .concat(S.custom.filter((x) => x.cat === c.id).map((x) => ({ ...x, brands: [], custom: true })));
+  const allItems = () => allCats().flatMap(itemsOf);
+  const itemById = (id) => allItems().find((x) => x.id === id);
+  const qtyOf = (it) => (S.qty[it.id] !== undefined && S.qty[it.id] !== '' ? S.qty[it.id] : it.q);
+  const brandOf = (it) => S.brand[it.id] || '';
+  const monthStr = () => new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+  /* ── Select tab ── */
+  function rowHtml(it) {
+    const on = !!S.sel[it.id], b = brandOf(it);
+    const brandBtn = b
+      ? `<button class="brand" data-edit="${esc(it.id)}">${esc(b)}</button>`
+      : on ? `<button class="brand empty" data-edit="${esc(it.id)}">+ Add brand</button>` : '';
+    return `<li class="row${on ? ' on' : ''}" data-id="${esc(it.id)}">
+      <button class="tick" aria-pressed="${on}" aria-label="${on ? 'Remove' : 'Add'} ${esc(it.en)}">${CHECK}</button>
+      <span class="label"><span class="en">${esc(it.en)}</span>${it.hi ? `<span class="hi">${esc(it.hi)}</span>` : ''}${brandBtn}</span>
+      <button class="qty" data-edit="${esc(it.id)}" aria-label="Quantity and brand for ${esc(it.en)}">${esc(qtyOf(it)) || 'Qty'}</button>
+    </li>`;
+  }
+  function renderCatalog() {
+    const q = $('search').value.trim().toLowerCase();
+    $('clearSearch').hidden = !q;
+    let html = '', any = false;
+    for (const c of allCats()) {
+      const its = itemsOf(c);
+      const shown = q ? its.filter((it) => [it.en, it.hi, brandOf(it), ...(it.brands || [])].join(' ').toLowerCase().includes(q)) : its;
+      if (q && !shown.length && !c.en.toLowerCase().includes(q)) continue;
+      any = true;
+      const on = its.filter((it) => S.sel[it.id]).length;
+      const isOpen = q ? true : open.has(c.id);
+      const list = q && shown.length ? shown : its;
+      html += `<section class="group${isOpen ? ' open' : ''}${on ? ' has' : ''}" id="g-${esc(c.id)}">
+        <button class="ghead" data-tog="${esc(c.id)}" aria-expanded="${isOpen}">
+          <span class="seal">${esc(c.seal)}</span>
+          <span class="gname"><span class="en">${esc(c.en)}</span>${c.hi ? `<span class="hi">${esc(c.hi)}</span>` : ''}</span>
+          <span class="gcount">${on ? `${on} picked` : `${its.length} items`}</span>${CHEV}
+        </button>`;
+      if (isOpen) {
+        html += `<div class="gtools"><span></span><span>${c.custom ? `<button class="link danger" data-delcat="${esc(c.id)}">Delete category</button>&nbsp;&nbsp;` : ''}${its.length ? `<button class="link" data-all="${esc(c.id)}">${on === its.length ? 'Unselect all' : 'Select all'}</button>` : ''}</span></div>
+          <ul class="rows">${list.map(rowHtml).join('')}${q ? '' : `<li class="addrow"><button class="add" data-add="${esc(c.id)}"><i>+</i>Add item to ${esc(c.en)}</button></li>`}</ul>`;
+      }
+      html += '</section>';
+    }
+    if (!any) html = `<p class="empty-search">Nothing matches “${esc(q)}”.<br>Clear the search, open a category and use “Add item”.</p>`;
+    else if (!q) html += '<button class="newcat" id="newCat">+ New category</button>';
+    $('catalog').innerHTML = html;
+
+    const sel = allItems().filter((it) => S.sel[it.id]);
+    const cats = new Set(sel.map((it) => it.cat)).size;
+    $('summary').innerHTML = sel.length ? `<strong>${sel.length} item${sel.length === 1 ? '' : 's'}</strong> from ${cats} categor${cats === 1 ? 'y' : 'ies'}` : `${allCats().length} categories · tap to open`;
+    const allOpen = allCats().every((c) => open.has(c.id));
+    $('expandAll').textContent = allOpen ? 'Collapse all' : 'Expand all';
+    $('expandAll').hidden = !!q;
+  }
+
+  /* ── Parchi tab ── */
+  function renderParchi() {
+    const sel = allItems().filter((it) => S.sel[it.id]);
+    const got = sel.filter((it) => S.got[it.id]).length;
+    $('progA').innerHTML = `<strong>${got}</strong> of ${sel.length} bought`;
+    $('progB').textContent = sel.length ? `${sel.length - got} left` : '';
+    $('fill').style.width = sel.length ? (got / sel.length) * 100 + '%' : '0';
+    document.querySelectorAll('#seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.f === filter)));
+    $('copyBtn').disabled = sel.length - got === 0;
+
+    let html = `<div class="p-head"><span class="t">Ghar Ki Parchi</span><span class="d">${esc(monthStr())}</span></div>`;
+    if (!sel.length) {
+      html += `<div class="p-empty"><p>Parchi khaali hai.</p><p>Pick items on the Select tab.</p><button class="btn primary" data-go="select">Choose items</button></div>`;
+    } else {
+      const num = {}; sel.forEach((it, i) => { num[it.id] = i + 1; });
+      let shownAny = false;
+      for (const c of allCats()) {
+        const its = itemsOf(c).filter((it) => S.sel[it.id] && (filter === 'all' || (filter === 'got') === !!S.got[it.id]));
+        if (!its.length) continue;
+        shownAny = true;
+        html += `<div class="p-cat">${esc(c.en)} <span>${esc(c.hi)}</span></div><ul class="p-list">`;
+        for (const it of its) {
+          const g = !!S.got[it.id], b = brandOf(it);
+          const small = b ? `<small class="b">${esc(b)}</small>` : it.hi ? `<small>${esc(it.hi)}</small>` : '';
+          html += `<li><button class="line${g ? ' got' : ''}" data-got="${esc(it.id)}" aria-pressed="${g}">
+            <span class="n">${num[it.id]}.</span><span class="box">${CHECK}</span>
+            <span class="nm">${esc(it.en)}${small}</span><span class="lead"></span><span class="q">${esc(qtyOf(it))}</span></button></li>`;
+        }
+        html += '</ul>';
+      }
+      if (!shownAny) html += `<div class="p-empty"><p>${filter === 'got' ? 'Nothing bought yet.' : 'Sab le liya! Everything is bought.'}</p></div>`;
+    }
+    $('paper').innerHTML = html;
+  }
+
+  /* ── Chrome ── */
+  function renderChrome() {
+    const sel = allItems().filter((it) => S.sel[it.id]);
+    const left = sel.filter((it) => !S.got[it.id]).length;
+    $('chips').innerHTML = allCats().map((c) => {
+      const on = itemsOf(c).filter((it) => S.sel[it.id]).length;
+      return `<button class="chip" data-jump="${esc(c.id)}">${esc(c.en)}${on ? `<b>${on}</b>` : ''}</button>`;
+    }).join('');
+    $('badge').hidden = !left; $('badge').textContent = left;
+    $('cta').hidden = tab !== 'select' || !sel.length;
+    $('cta').innerHTML = `View parchi <b>${sel.length}</b>`;
+    $('eyebrow').textContent = `Mahine ka ration · ${monthStr()}`;
+  }
+  function renderAll() { renderCatalog(); renderParchi(); renderChrome(); }
+  function setTab(t) {
+    tab = t;
+    $('vSelect').hidden = $('hdSelect').hidden = t !== 'select';
+    $('vParchi').hidden = $('hdParchi').hidden = t !== 'parchi';
+    $('tabSelect').setAttribute('aria-selected', String(t === 'select'));
+    $('tabParchi').setAttribute('aria-selected', String(t === 'parchi'));
+    store.set(LKEY + ':tab', t);
+    renderChrome();
+    window.scrollTo(0, 0);
+  }
+
+  /* ── Saving: everything stays on this phone ── */
+  function save() { store.set(LKEY, S); }
+  const commit = () => { renderAll(); save(); };
+
+  /* ── Parchi links and backup codes: the whole list packed into text ── */
+  const b64u = (bytes) => { let s = ''; bytes.forEach((b) => { s += String.fromCharCode(b); }); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const unb64u = (str) => { const s = atob(str.replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(s, (c) => c.charCodeAt(0)); };
+  async function pipe(bytes, Stream, mode) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new Stream(mode))).arrayBuffer()); }
+  async function pack(obj) {
+    const raw = new TextEncoder().encode(JSON.stringify(obj));
+    try { if (window.CompressionStream) return 'z' + b64u(await pipe(raw, CompressionStream, 'deflate-raw')); } catch (e) {}
+    return 'j' + b64u(raw);
+  }
+  async function unpack(code) {
+    code = String(code || '').trim().replace(/^.*#p=/, '');
+    const kind = code[0], bytes = unb64u(code.slice(1));
+    const raw = kind === 'z' ? await pipe(bytes, DecompressionStream, 'deflate-raw') : bytes;
+    return norm(JSON.parse(new TextDecoder().decode(raw)));
+  }
+  const siteUrl = () => location.href.split('#')[0];
+  const openWhatsApp = (text) => { const u = 'https://wa.me/?text=' + encodeURIComponent(text); const w = window.open(u, '_blank'); if (!w) location.href = u; };
+  async function shareLink() { return siteUrl() + '#p=' + await pack(S); }
+  async function copyText(text, okMsg, title) {
+    try { await navigator.clipboard.writeText(text); toast(okMsg); }
+    catch (e) {
+      actionSheet({ title, msg: 'Select all, then copy.', body: `<textarea id="copyArea" readonly>${esc(text)}</textarea>`, cancel: 'Done' });
+      const a = $('copyArea'); if (a) { a.focus(); a.select(); }
+    }
+  }
+  function loadSheet(next, from) {
+    const n = Object.keys(next.sel).length;
+    actionSheet({ title: `Load this parchi?`, msg: `${from} has ${n} item${n === 1 ? '' : 's'}. Loading it replaces the list on this phone.`, cancel: 'Keep my list', actions: [
+      { label: 'Load parchi', fn: () => { S = next; commit(); setTab(n ? 'parchi' : 'select'); toast('Parchi loaded'); } },
+    ] });
+  }
+  function openMenu() {
+    const n = Object.keys(S.sel).length;
+    const linkP = shareLink(), codeP = pack(S);
+    showSheet(`<div class="sheet-card"><p class="sheet-title">Share & backup</p>
+        <p class="sheet-msg">Your list is saved on this phone only. Send the parchi link to share it with family.</p>
+        <button class="act" data-m="link">Send parchi to family</button>
+        <button class="act" data-m="text">Copy list as text</button>
+        <button class="act" data-m="backup">Copy backup code</button>
+        <button class="act" data-m="restore">Restore from backup code</button>
+        <button class="act danger" data-m="wipe">Reset everything</button>
+        <p class="sheet-note">${n} item${n === 1 ? '' : 's'} on the parchi · works offline once opened</p></div>
+      <button class="sheet-cancel" data-close>Close</button>`, async (e) => {
+      const b = e.target.closest('[data-m]'); if (!b) return;
+      const m = b.dataset.m;
+      if (m === 'link') {
+        const url = await linkP;
+        const text = `Ghar Ki Parchi – ${monthStr()}. Open this to load the list:`;
+        if (navigator.share) { try { await navigator.share({ title: 'Ghar Ki Parchi', text, url }); closeSheet(); return; } catch (err) { if (err && err.name === 'AbortError') return; } }
+        closeSheet(); openWhatsApp(text + '\n' + url);
+      } else if (m === 'text') {
+        closeSheet(); copyText(listText(), 'List copied', 'Copy this list');
+      } else if (m === 'backup') {
+        const code = await codeP; closeSheet(); copyText(code, 'Backup code copied. Keep it in Notes or WhatsApp.', 'Copy backup code');
+      } else if (m === 'restore') {
+        showSheet(`<div class="sheet-card ed"><div class="ed-head"><span class="seal">↺</span><div><p class="t">Restore from backup</p><p class="s">Paste a backup code or a parchi link</p></div></div>
+            <label class="fld"><span>Backup code</span><textarea id="rsCode" style="margin:0;width:100%;height:120px" placeholder="Paste here"></textarea></label>
+            <div class="ed-foot"><button class="btn primary" data-rs>Restore</button></div></div>
+          <button class="sheet-cancel" data-close>Cancel</button>`, async (ev) => {
+          if (!ev.target.closest('[data-rs]')) return;
+          try { const next = await unpack($('rsCode').value); closeSheet(); loadSheet(next, 'The backup'); }
+          catch (err) { toast('That code didn’t work. Copy the whole code and try again.'); }
+        });
+        setTimeout(() => $('rsCode') && $('rsCode').focus(), 60);
+      } else if (m === 'wipe') {
+        closeSheet();
+        actionSheet({ title: 'Reset everything?', msg: 'Clears picks, quantities, brands and items you added on this phone.', actions: [
+          { label: 'Reset everything', danger: true, fn: () => { S = norm(null); commit(); toast('Everything reset'); } },
+        ] });
+      }
+    });
+  }
+
+  /* ── Sheets ── */
+  function closeSheet() { const s = $('scrim'); s.hidden = true; s.innerHTML = ''; s.onclick = null; }
+  function showSheet(inner, onClick) {
+    const s = $('scrim');
+    s.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${inner}</div>`;
+    s.hidden = false;
+    s.onclick = (e) => { if (e.target === s || e.target.closest('[data-close]')) return closeSheet(); onClick && onClick(e); };
+  }
+  function actionSheet({ title, msg, body = '', actions = [], cancel = 'Cancel' }) {
+    showSheet(`<div class="sheet-card"><p class="sheet-title">${esc(title)}</p>${msg ? `<p class="sheet-msg">${esc(msg)}</p>` : ''}${body}
+      ${actions.map((a, i) => `<button class="act${a.danger ? ' danger' : ''}" data-act="${i}">${esc(a.label)}</button>`).join('')}</div>
+      <button class="sheet-cancel" data-close>${esc(cancel)}</button>`, (e) => {
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      closeSheet(); actions[+b.dataset.act].fn();
+    });
+  }
+
+  function qtyOptions(base) {
+    const m = String(base).match(/^([\d.]+)\s*(.*)$/);
+    if (!m) return base ? [base] : [];
+    const n = parseFloat(m[1]), u = m[2];
+    const fmt = (v) => (Math.round(v * 100) / 100) + (u ? ' ' + u : '');
+    return [...new Set([n / 2, n, n * 1.5, n * 2].filter((v) => v > 0 && (v >= 1 || n < 1 || u)).map(fmt))];
+  }
+
+  /* Item editor: quantity + brand, also used to add a new item */
+  function openEditor(id, addCat) {
+    const isAdd = !!addCat;
+    const it = isAdd ? { id: null, en: '', hi: '', q: '', brands: [], cat: addCat } : itemById(id);
+    if (!it) return;
+    const c = catById(it.cat);
+    const q = isAdd ? '' : qtyOf(it), b = isAdd ? '' : brandOf(it);
+    const qOpts = isAdd ? [] : qtyOptions(it.q);
+    const on = !isAdd && !!S.sel[it.id];
+    const head = isAdd
+      ? `<div class="ed-head"><span class="seal">${esc(c.seal)}</span><div><p class="t">Add item to ${esc(c.en)}</p><p class="s">${esc(c.hi)}</p></div></div>
+         <label class="fld"><span>Item name</span><input id="edN" placeholder="e.g. Sarson ka saag masala" autocomplete="off"></label>
+         <label class="fld"><span>Hindi name (optional)</span><input id="edH" placeholder="हिंदी नाम" autocomplete="off"></label>`
+      : `<div class="ed-head"><span class="seal">${esc(c.seal)}</span><div><p class="t">${esc(it.en)}</p><p class="s">${esc(it.hi)}${it.hi ? ' · ' : ''}${esc(c.en)}</p></div></div>`;
+    const inner = `<div class="sheet-card ed">${head}
+        <label class="fld"><span>Quantity</span><input id="edQ" value="${esc(q)}" placeholder="e.g. 2 kg, 1 pkt" autocomplete="off"></label>
+        ${qOpts.length ? `<div class="sugg" data-for="edQ">${qOpts.map((o) => `<button type="button" data-v="${esc(o)}" class="${o === q ? 'on' : ''}">${esc(o)}</button>`).join('')}</div>` : ''}
+        <label class="fld"><span>Brand</span><input id="edB" value="${esc(b)}" placeholder="Any brand" autocomplete="off"></label>
+        ${it.brands.length ? `<div class="sugg brands" data-for="edB">${it.brands.map((o) => `<button type="button" data-v="${esc(o)}" class="${o === b ? 'on' : ''}">${esc(o)}</button>`).join('')}</div>` : ''}
+        <div class="ed-foot">
+          <button class="btn primary" data-save>${isAdd ? 'Add to parchi' : on ? 'Save' : 'Save & add to parchi'}</button>
+          ${!isAdd && it.custom ? '<button class="link danger" data-delitem type="button">Delete item</button>' : ''}
+          ${on ? '<button class="link danger" data-unpick type="button">Remove from parchi</button>' : ''}
+        </div>
+      </div>
+      <button class="sheet-cancel" data-close>Cancel</button>`;
+    showSheet(inner, (e) => {
+      const chip = e.target.closest('.sugg [data-v]');
+      if (chip) {
+        const box = chip.parentElement, inp = $(box.dataset.for);
+        const turnOff = chip.classList.contains('on') && box.dataset.for === 'edB';
+        inp.value = turnOff ? '' : chip.dataset.v;
+        box.querySelectorAll('button').forEach((x) => x.classList.toggle('on', !turnOff && x === chip));
+        return;
+      }
+      if (e.target.closest('[data-unpick]')) { delete S.sel[it.id]; delete S.got[it.id]; closeSheet(); commit(); toast(`${it.en} removed from parchi`); return; }
+      if (e.target.closest('[data-delitem]')) { deleteItem(it.id); closeSheet(); return; }
+      if (e.target.closest('[data-save]')) saveEditor(it, isAdd);
+    });
+    ['edQ', 'edB'].forEach((k) => {
+      const inp = $(k); if (!inp) return;
+      inp.addEventListener('input', () => {
+        const box = document.querySelector(`.sugg[data-for="${k}"]`);
+        if (box) box.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.v.toLowerCase() === inp.value.trim().toLowerCase()));
+      });
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveEditor(it, isAdd); } });
+    });
+    const first = isAdd ? $('edN') : null;
+    if (first) setTimeout(() => first.focus(), 60);
+  }
+  function saveEditor(it, isAdd) {
+    const q = ($('edQ').value || '').trim(), b = ($('edB').value || '').trim();
+    let id = it.id;
+    if (isAdd) {
+      const en = ($('edN').value || '').trim();
+      if (!en) { $('edN').focus(); toast('Type the item name first.'); return; }
+      id = uid('c');
+      S.custom.push({ id, cat: it.cat, en, hi: ($('edH').value || '').trim(), q });
+      open.add(it.cat); store.set(LKEY + ':open', [...open]);
+    } else {
+      if (q && q !== it.q) S.qty[id] = q; else delete S.qty[id];
+    }
+    if (b) S.brand[id] = b; else delete S.brand[id];
+    S.sel[id] = true;
+    closeSheet(); commit();
+    toast(isAdd ? 'Added to parchi' : 'Saved');
+  }
+  function deleteItem(id) {
+    const it = S.custom.find((x) => x.id === id);
+    S.custom = S.custom.filter((x) => x.id !== id);
+    ['sel', 'qty', 'brand', 'got'].forEach((k) => delete S[k][id]);
+    commit();
+    if (it) toast(`Deleted ${it.en}`);
+  }
+
+  let toastT;
+  function toast(t) { const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2400); }
+
+  function listText() {
+    const lines = [`*Ghar Ki Parchi – ${monthStr()}*`];
+    let n = 0;
+    for (const c of allCats()) {
+      const its = itemsOf(c).filter((it) => S.sel[it.id] && !S.got[it.id]);
+      if (!its.length) continue;
+      lines.push('', `*${c.en}*${c.hi ? ` (${c.hi})` : ''}`);
+      for (const it of its) {
+        const b = brandOf(it);
+        lines.push(`${++n}. ${it.en}${it.hi ? ` (${it.hi})` : ''}${b ? ` – ${b}` : ''} – ${qtyOf(it)}`);
+      }
+    }
+    return lines.join('\n');
+  }
+
+  /* ── Events ── */
+  $('catalog').addEventListener('click', (e) => {
+    const t = e.target;
+    const ed = t.closest('[data-edit]'); if (ed) return openEditor(ed.dataset.edit);
+    const tog = t.closest('[data-tog]');
+    if (tog) { const id = tog.dataset.tog; if ($('search').value.trim()) return; open.has(id) ? open.delete(id) : open.add(id); store.set(LKEY + ':open', [...open]); renderCatalog(); return; }
+    const all = t.closest('[data-all]');
+    if (all) {
+      const its = itemsOf(catById(all.dataset.all)), every = its.every((it) => S.sel[it.id]);
+      its.forEach((it) => { if (every) { delete S.sel[it.id]; delete S.got[it.id]; } else S.sel[it.id] = true; });
+      commit(); return;
+    }
+    const add = t.closest('[data-add]'); if (add) return openEditor(null, add.dataset.add);
+    const dc = t.closest('[data-delcat]');
+    if (dc) {
+      const c = catById(dc.dataset.delcat);
+      actionSheet({ title: `Delete ${c.en}?`, msg: 'Items you added in this category are deleted too.', actions: [{ label: 'Delete category', danger: true, fn: () => {
+        S.custom.filter((x) => x.cat === c.id).forEach((x) => ['sel', 'qty', 'brand', 'got'].forEach((k) => delete S[k][x.id]));
+        S.custom = S.custom.filter((x) => x.cat !== c.id);
+        S.cats = S.cats.filter((x) => x.id !== c.id);
+        commit(); toast(`Deleted ${c.en}`);
+      } }] });
+      return;
+    }
+    if (t.closest('#newCat')) {
+      showSheet(`<div class="sheet-card ed"><div class="ed-head"><span class="seal">+</span><div><p class="t">New category</p><p class="s">For anything not on the list</p></div></div>
+        <label class="fld"><span>Category name</span><input id="ncN" placeholder="e.g. Baby care, Pet food" autocomplete="off"></label>
+        <label class="fld"><span>Hindi name (optional)</span><input id="ncH" autocomplete="off"></label>
+        <div class="ed-foot"><button class="btn primary" data-mk>Create category</button></div></div>
+        <button class="sheet-cancel" data-close>Cancel</button>`, (ev) => { if (ev.target.closest('[data-mk]')) makeCat(); });
+      $('ncN').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); makeCat(); } });
+      setTimeout(() => $('ncN').focus(), 60);
+      return;
+    }
+    const row = t.closest('.row');
+    if (row) {
+      const id = row.dataset.id;
+      if (S.sel[id]) { delete S.sel[id]; delete S.got[id]; } else S.sel[id] = true;
+      commit();
+    }
+  });
+  function makeCat() {
+    const en = ($('ncN').value || '').trim();
+    if (!en) { $('ncN').focus(); return; }
+    const id = uid('k');
+    S.cats.push({ id, en, hi: ($('ncH').value || '').trim() });
+    open.add(id); store.set(LKEY + ':open', [...open]);
+    closeSheet(); commit();
+    const g = $('g-' + id); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast(`Created ${en}`);
+  }
+
+  $('expandAll').addEventListener('click', () => {
+    const allOpen = allCats().every((c) => open.has(c.id));
+    open = allOpen ? new Set() : new Set(allCats().map((c) => c.id));
+    store.set(LKEY + ':open', [...open]); renderCatalog();
+  });
+  $('search').addEventListener('input', renderCatalog);
+  $('clearSearch').addEventListener('click', () => { $('search').value = ''; renderCatalog(); $('search').focus(); });
+  $('chips').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-jump]'); if (!b) return;
+    if ($('search').value) $('search').value = '';
+    open.add(b.dataset.jump); store.set(LKEY + ':open', [...open]);
+    renderCatalog();
+    const g = $('g-' + b.dataset.jump); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  $('paper').addEventListener('click', (e) => {
+    if (e.target.closest('[data-go]')) return setTab('select');
+    const l = e.target.closest('[data-got]'); if (!l) return;
+    const id = l.dataset.got;
+    if (S.got[id]) delete S.got[id]; else S.got[id] = true;
+    commit();
+  });
+  $('seg').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; renderParchi(); });
+  $('editBtn').addEventListener('click', () => setTab('select'));
+  $('copyBtn').addEventListener('click', () => openWhatsApp(listText()));
+  $('menuBtn').addEventListener('click', openMenu);
+  $('resetBtn').addEventListener('click', () => {
+    actionSheet({ title: 'Start a new parchi?', msg: 'Brands and quantities you set are kept.', actions: [
+      { label: 'Uncheck bought items', fn: () => { S.got = {}; commit(); toast('Bought items unchecked'); } },
+      { label: 'Clear the whole parchi', danger: true, fn: () => { S.sel = {}; S.got = {}; commit(); toast('Parchi cleared'); } },
+    ] });
+  });
+  $('cta').addEventListener('click', () => setTab('parchi'));
+  document.querySelector('.tabbar').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('scrim').hidden) closeSheet(); });
+
+  if (window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty('--hh', $('bar').offsetHeight + 'px')).observe($('bar'));
+
+  setTab(tab);
+  renderAll();
+
+  /* ── Opened from a parchi link sent by family ── */
+  async function checkLink() {
+    if (!location.hash.startsWith('#p=')) return;
+    const code = location.hash.slice(3);
+    try { history.replaceState(null, '', siteUrl()); } catch (e) {}
+    try { loadSheet(await unpack(code), 'This link'); } catch (e) { toast('This parchi link is incomplete. Ask for it to be sent again.'); }
+  }
+  checkLink();
+  window.addEventListener('hashchange', checkLink);
+
+  /* ── One-time tip: add to the iPhone home screen ── */
+  const standalone = navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  if (!standalone && !store.get(LKEY + ':tip', false)) {
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    $('tip').innerHTML = `<p><strong>Use it like an app.</strong> ${ios ? 'In Safari tap Share, then “Add to Home Screen”.' : 'Open your browser menu and choose “Add to Home screen” or “Install app”.'}</p><button aria-label="Dismiss tip">×</button>`;
+    $('tip').hidden = false;
+    $('tip').querySelector('button').addEventListener('click', () => { $('tip').hidden = true; store.set(LKEY + ':tip', true); });
+  }
+
+  /* ── Offline: keep a copy of the site on the phone ── */
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+})();
+</script>
+
+</body>
+</html>
