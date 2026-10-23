@@ -1341,6 +1341,9 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
     else { b.disabled = false; b.textContent = 'Resend code'; }
   }
   async function sendCode() {
+    /* Get the email ready first, so Supabase sends the code email (not a "Confirm signup" link).
+       If this step fails, still ask for the code: Supabase handles it either way. */
+    try { await call('/functions/v1/prepare-login', { method: 'POST', body: { email: authEmail }, auth: false }); } catch (e) { if (e.code === 'offline') throw e; }
     await call('/auth/v1/otp', { method: 'POST', body: { email: authEmail, create_user: true }, auth: false });
     resendAt = Date.now() + 60000; clearTimeout(resendTimer); tickResend();
   }
