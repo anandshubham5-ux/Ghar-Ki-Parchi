@@ -1419,6 +1419,21 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
       showErr('errEmail', 'Login isn’t set up yet. The site owner needs to add the Supabase keys.');
       $('sendBtn').disabled = true; return;
     }
+    /* Arrived from a link in a login email: Supabase puts the session (or an error) after the # */
+    if (/[#&](access_token|error_description)=/.test(location.hash)) {
+      const h = new URLSearchParams(location.hash.slice(1));
+      try { history.replaceState(null, '', siteUrl()); } catch (e) {}
+      if (h.get('access_token')) {
+        try {
+          const user = await fetch(API + '/auth/v1/user', { headers: { apikey: KEY, Authorization: 'Bearer ' + h.get('access_token') } }).then((r) => (r.ok ? r.json() : Promise.reject(r)));
+          keepSession({ access_token: h.get('access_token'), refresh_token: h.get('refresh_token'), expires_at: +h.get('expires_at') || 0, expires_in: +h.get('expires_in') || 3600, user });
+        } catch (e) { showAuth('email'); showErr('errEmail', 'That login link didn’t work. Send yourself a new code.'); return; }
+      } else {
+        showAuth('email');
+        showErr('errEmail', /expired|invalid/i.test(h.get('error_description') || '') ? 'That login link has expired or was already used. Send yourself a new code.' : (h.get('error_description') || 'That login link didn’t work.').replace(/\+/g, ' '));
+        return;
+      }
+    }
     if (!session) { showAuth('email'); return; }
     try { await enterApp(); }
     catch (e) { if (session) { showAuth('email'); showErr('errEmail', friendly(e)); } }
