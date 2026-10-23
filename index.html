@@ -273,18 +273,88 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
 
 .toast { position: fixed; left: 50%; translate: -50% 0; z-index: 60; bottom: calc(132px + env(safe-area-inset-bottom, 0px)); max-width: calc(100% - 32px); padding: 10px 16px 8px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 0.9rem; font-weight: 500; text-align: center; box-shadow: var(--shadow-lg); animation: rise 0.2s ease; }
 
+/* ── Login ── */
+.auth { min-height: 100vh; min-height: 100dvh; display: grid; align-content: center; justify-items: center; padding: 32px 16px calc(32px + env(safe-area-inset-bottom, 0px)); }
+.auth-card { width: 100%; max-width: 420px; display: grid; gap: 18px; }
+.auth-slip { justify-self: center; width: 88px; height: 108px; border-radius: 10px 10px 4px 4px; background: var(--paper); box-shadow: var(--shadow-lg), 0 0 0 1px var(--line); position: relative; overflow: hidden; transform: rotate(-4deg); }
+.auth-slip::before { content: ''; position: absolute; inset: 18px 12px 18px 26px; background: repeating-linear-gradient(to bottom, transparent 0 13px, var(--pen) 13px 16px); opacity: 0.75; }
+.auth-slip::after { content: ''; position: absolute; top: 0; bottom: 0; left: 19px; width: 1.5px; background: var(--margin); }
+.auth h1 { text-align: center; }
+.auth .deva { text-align: center; }
+.auth-lead { margin: 0; text-align: center; color: var(--muted); font-size: 0.98rem; text-wrap: balance; }
+.auth-box { background: var(--surface); border-radius: 22px; box-shadow: var(--shadow); padding: 20px 18px; display: grid; gap: 14px; }
+.auth-box .btn.primary { width: 100%; padding-block: 14px 12px; font-size: 1.02rem; }
+.auth-box .fld input { font-size: 1.05rem; padding-block: 13px 11px; }
+.code-in { text-align: center; letter-spacing: 0.4em; font-size: 1.5rem !important; font-weight: 600; font-variant-numeric: tabular-nums; }
+.auth-err { margin: 0; color: var(--danger); font-size: 0.88rem; text-align: center; }
+.auth-row { display: flex; justify-content: space-between; gap: 10px; font-size: 0.88rem; color: var(--muted); }
+.auth-row .link[disabled] { color: var(--faint); cursor: default; }
+.auth-sent { margin: 0; font-size: 0.92rem; color: var(--muted); text-align: center; }
+.auth-sent b { color: var(--ink); font-weight: 600; word-break: break-all; }
+.auth-foot { margin: 0; text-align: center; font-size: 0.8rem; color: var(--faint); }
+.spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid currentColor; border-right-color: transparent; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.boot { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; color: var(--accent); }
+.boot .spin { width: 28px; height: 28px; }
+
+/* ── List picker + save state ── */
+.subrow { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.listpick { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 12px 4px; font-weight: 600; font-size: 0.88rem; color: var(--ink); }
+.listpick span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.listpick svg { width: 14px; height: 14px; flex: none; color: var(--muted); margin-top: -2px; }
+.subrow .sync { box-shadow: none; background: none; padding: 0; margin: 0; }
+.lrow { width: 100%; display: flex; align-items: center; gap: 12px; border: 0; border-top: 1px solid var(--line); background: var(--surface); padding: 13px 16px 11px; text-align: left; }
+.lrow .nm { flex: 1; min-width: 0; display: grid; }
+.lrow .nm b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lrow .nm small { color: var(--muted); font-size: 0.8rem; }
+.lrow .ck { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+.lrow .ck svg { width: 12px; height: 12px; }
+.who { margin: 0; padding: 0 16px 12px; text-align: center; font-size: 0.86rem; color: var(--muted); word-break: break-all; }
+.who b { color: var(--ink); font-weight: 600; }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
 
-<div class="app">
+<div class="boot" id="boot"><div class="spin" role="status" aria-label="Loading"></div></div>
+
+<section class="auth" id="auth" hidden>
+  <div class="auth-card">
+    <div class="auth-slip" aria-hidden="true"></div>
+    <div>
+      <h1>Ghar Ki Parchi<span class="deva">घर की पर्ची</span></h1>
+    </div>
+    <p class="auth-lead">Your monthly ration list, with quantities and brands. Log in to keep your lists safe and open them on any phone.</p>
+
+    <form class="auth-box" id="stepEmail" novalidate>
+      <label class="fld"><span>Email</span><input id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@gmail.com" required></label>
+      <p class="auth-err" id="errEmail" hidden></p>
+      <button class="btn primary" id="sendBtn" type="submit">Send login code</button>
+      <p class="auth-foot">We'll email you a code. No password needed.</p>
+    </form>
+
+    <form class="auth-box" id="stepCode" novalidate hidden>
+      <p class="auth-sent">Code sent to <b id="sentTo"></b>. Check your inbox and spam folder.</p>
+      <label class="fld"><span>Login code</span><input id="authCode" class="code-in" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="10" placeholder="••••••" required></label>
+      <p class="auth-err" id="errCode" hidden></p>
+      <button class="btn primary" id="verifyBtn" type="submit">Log in</button>
+      <div class="auth-row"><button class="link" id="changeEmail" type="button">Change email</button><button class="link" id="resendBtn" type="button" disabled>Resend code</button></div>
+    </form>
+  </div>
+</section>
+
+<div class="app" id="app" hidden>
   <header class="mast">
     <div>
       <p class="eyebrow" id="eyebrow">Mahine ka ration</p>
       <h1>Ghar Ki Parchi<span class="deva">घर की पर्ची</span></h1>
+      <div class="subrow">
+        <button class="listpick" id="listBtn" aria-label="Switch list"><span id="listName">Monthly ration</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <span class="sync" id="sync" data-s="synced">Saved</span>
+      </div>
     </div>
-    <button class="menu" id="menuBtn" aria-label="Share, backup and settings">
+    <button class="menu" id="menuBtn" aria-label="Share, account and settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg>
       Share
     </button>
@@ -336,7 +406,7 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
 
 <button class="cta" id="cta" hidden></button>
 
-<nav class="tabbar" role="tablist">
+<nav class="tabbar" id="tabbar" role="tablist" hidden>
   <button class="tab" role="tab" id="tabSelect" data-tab="select" aria-selected="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/></svg>
     Select
@@ -351,6 +421,7 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
 <div class="scrim" id="scrim" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
+<script src="config.js"></script>
 <script>
 (() => {
   /* ── Brand suggestions shared by several items ── */
@@ -783,7 +854,7 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
       return `<button class="chip" data-jump="${esc(c.id)}">${esc(c.en)}${on ? `<b>${on}</b>` : ''}</button>`;
     }).join('');
     $('badge').hidden = !left; $('badge').textContent = left;
-    $('cta').hidden = tab !== 'select' || !sel.length;
+    $('cta').hidden = !signedIn || tab !== 'select' || !sel.length;
     $('cta').innerHTML = `View parchi <b>${sel.length}</b>`;
     $('eyebrow').textContent = `Mahine ka ration · ${monthStr()}`;
   }
@@ -799,9 +870,106 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
     window.scrollTo(0, 0);
   }
 
-  /* ── Saving: everything stays on this phone ── */
-  function save() { store.set(LKEY, S); }
+  /* ── Account: Supabase sign-in (email + code) and the person's lists ── */
+  const CFG = window.PARCHI_CONFIG || {};
+  const API = String(CFG.url || '').replace(/\/+$/, ''), KEY = String(CFG.key || '');
+  const SKEY = 'parchi-session', CKEY = (uid) => 'parchi-cache:' + uid;
+  let session = store.get(SKEY, null);
+  let lists = [], cur = null, signedIn = false;
+  const curList = () => lists.find((l) => l.id === cur);
+
+  class ApiError extends Error { constructor(msg, status, code) { super(msg); this.status = status; this.code = code; } }
+  async function call(path, { method = 'GET', body, auth = true, prefer } = {}) {
+    if (auth) await freshSession();
+    const h = { apikey: KEY, 'Content-Type': 'application/json' };
+    if (auth && session) h.Authorization = 'Bearer ' + session.access_token;
+    if (prefer) h.Prefer = prefer;
+    let res;
+    try { res = await fetch(API + path, { method, headers: h, body: body === undefined ? undefined : JSON.stringify(body) }); }
+    catch (e) { throw new ApiError('No internet connection.', 0, 'offline'); }
+    const txt = await res.text();
+    let data = null; try { data = txt ? JSON.parse(txt) : null; } catch (e) {}
+    if (!res.ok) {
+      const msg = (data && (data.msg || data.message || data.error_description || data.error)) || ('Request failed (' + res.status + ')');
+      throw new ApiError(msg, res.status, data && (data.error_code || data.code));
+    }
+    return data;
+  }
+  function keepSession(d) {
+    session = { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || Math.floor(Date.now() / 1000) + (d.expires_in || 3600), user: d.user || (session && session.user) };
+    store.set(SKEY, session);
+  }
+  let refreshing = null;
+  async function freshSession() {
+    if (!session) throw new ApiError('Please log in again.', 401, 'no_session');
+    if (session.expires_at - 60 > Date.now() / 1000) return;
+    if (!refreshing) refreshing = (async () => {
+      try { keepSession(await call('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: session.refresh_token }, auth: false })); }
+      catch (e) { if (e.status === 400 || e.status === 401) { signOut(true); } throw e; }
+      finally { refreshing = null; }
+    })();
+    return refreshing;
+  }
+
+  /* Lists: one row per list, the whole parchi stored as JSON in `data` */
+  const cacheLists = () => { if (session) store.set(CKEY(session.user.id), { lists, cur }); };
+  async function fetchLists() { return call('/rest/v1/lists?select=id,name,data,updated_at&order=created_at.asc'); }
+  async function createList(name, data) {
+    const rows = await call('/rest/v1/lists?select=id,name,data,updated_at', { method: 'POST', body: { name, data }, prefer: 'return=representation' });
+    return rows[0];
+  }
+  async function patchList(id, fields) {
+    const rows = await call('/rest/v1/lists?id=eq.' + encodeURIComponent(id) + '&select=updated_at', { method: 'PATCH', body: { ...fields, updated_at: new Date().toISOString() }, prefer: 'return=representation' });
+    return rows && rows[0];
+  }
+  async function removeList(id) { await call('/rest/v1/lists?id=eq.' + encodeURIComponent(id), { method: 'DELETE' }); }
+
+  /* ── Saving: to the phone at once, to the account a moment later ── */
+  let timer = null, writing = false, dirty = false;
+  const SYNC = { synced: 'Saved', saving: 'Saving…', offline: 'Offline · will save', error: 'Not saved · retrying' };
+  function setSync(st) { const el = $('sync'); el.dataset.s = st === 'synced' ? 'synced' : st === 'saving' ? 'saving' : 'error'; el.textContent = SYNC[st]; }
+  function save() {
+    const l = curList(); if (!l) return;
+    l.data = JSON.parse(JSON.stringify(S));
+    dirty = true; cacheLists(); setSync('saving');
+    clearTimeout(timer); timer = setTimeout(flush, 700);
+  }
+  async function flush() {
+    timer = null;
+    if (writing || !dirty) return;
+    const l = curList(); if (!l) return;
+    writing = true; dirty = false;
+    try { const r = await patchList(l.id, { data: l.data }); if (r) l.updated_at = r.updated_at; cacheLists(); setSync(dirty ? 'saving' : 'synced'); }
+    catch (e) { dirty = true; setSync(e.code === 'offline' ? 'offline' : 'error'); clearTimeout(timer); timer = setTimeout(flush, 15000); }
+    writing = false;
+    if (dirty && !timer) timer = setTimeout(flush, 300);
+  }
+  window.addEventListener('online', () => { if (dirty) flush(); });
   const commit = () => { renderAll(); save(); };
+
+  function useList(id) {
+    cur = id; const l = curList();
+    S = norm(l && l.data);
+    $('listName').textContent = l ? l.name : '';
+    store.set(LKEY + ':cur', cur);
+    cacheLists(); renderAll();
+  }
+  async function switchList(id) { if (dirty) await flush(); useList(id); setTab('select'); }
+  async function syncFromServer() {
+    if (!signedIn || dirty || writing) return;
+    try {
+      const rows = await fetchLists();
+      if (dirty || writing) return;
+      const before = curList();
+      lists = rows;
+      if (!lists.length) { lists = [await createList('Monthly ration', norm(null))]; }
+      const keep = lists.find((l) => l.id === cur) ? cur : lists[0].id;
+      const now = lists.find((l) => l.id === keep);
+      if (!before || keep !== cur || now.updated_at !== before.updated_at) useList(keep); else { $('listName').textContent = now.name; cacheLists(); }
+      setSync('synced');
+    } catch (e) { if (e.code === 'offline') setSync('offline'); }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncFromServer(); });
 
   /* ── Parchi links and backup codes: the whole list packed into text ── */
   const b64u = (bytes) => { let s = ''; bytes.forEach((b) => { s += String.fromCharCode(b); }); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
@@ -830,21 +998,73 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
   }
   function loadSheet(next, from) {
     const n = Object.keys(next.sel).length;
-    actionSheet({ title: `Load this parchi?`, msg: `${from} has ${n} item${n === 1 ? '' : 's'}. Loading it replaces the list on this phone.`, cancel: 'Keep my list', actions: [
-      { label: 'Load parchi', fn: () => { S = next; commit(); setTab(n ? 'parchi' : 'select'); toast('Parchi loaded'); } },
+    const nm = curList() ? curList().name : 'this list';
+    actionSheet({ title: `Load this parchi?`, msg: `${from} has ${n} item${n === 1 ? '' : 's'}.`, cancel: 'Not now', actions: [
+      { label: 'Save as a new list', fn: () => makeList('Shared parchi ' + new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }), next).then((r) => { if (r && n) setTab('parchi'); }) },
+      { label: `Replace “${nm}”`, danger: true, fn: () => { S = next; commit(); setTab(n ? 'parchi' : 'select'); toast('Parchi loaded'); } },
     ] });
   }
+  const CK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  function openLists() {
+    const rows = lists.map((l) => {
+      const n = Object.keys((l.data && l.data.sel) || {}).length;
+      return `<button class="lrow" data-l="${esc(l.id)}"><span class="nm"><b>${esc(l.name)}</b><small>${n} item${n === 1 ? '' : 's'} picked</small></span>${l.id === cur ? `<span class="ck">${CK}</span>` : ''}</button>`;
+    }).join('');
+    showSheet(`<div class="sheet-card"><p class="sheet-title">Your lists</p><p class="sheet-msg">Make a separate list for festivals, guests or another house.</p>${rows}
+        <button class="act" data-x="new">+ New list</button>
+        <button class="act" data-x="rename">Rename “${esc(curList() ? curList().name : '')}”</button>
+        ${lists.length > 1 ? `<button class="act danger" data-x="del">Delete “${esc(curList() ? curList().name : '')}”</button>` : ''}</div>
+      <button class="sheet-cancel" data-close>Close</button>`, (e) => {
+      const r = e.target.closest('[data-l]');
+      if (r) { closeSheet(); if (r.dataset.l !== cur) switchList(r.dataset.l).then(() => toast('Switched to ' + curList().name)); return; }
+      const x = e.target.closest('[data-x]'); if (!x) return;
+      if (x.dataset.x === 'new') nameSheet({ title: 'New list', sub: 'Pick how to start it', value: '', placeholder: 'e.g. Diwali shopping', actions: [
+        { label: 'Create empty list', fn: (nm) => makeList(nm, norm(null)) },
+        { label: 'Copy current list', quiet: true, fn: (nm) => makeList(nm, { ...norm(S), sel: { ...S.sel }, got: {} }) },
+      ] });
+      else if (x.dataset.x === 'rename') nameSheet({ title: 'Rename list', sub: '', value: curList().name, actions: [
+        { label: 'Save name', fn: async (nm) => { const l = curList(); const old = l.name; l.name = nm; $('listName').textContent = nm; cacheLists();
+          try { await patchList(l.id, { name: nm }); toast('Renamed'); } catch (err) { l.name = old; $('listName').textContent = old; toast(err.message); } } },
+      ] });
+      else if (x.dataset.x === 'del') {
+        const l = curList();
+        actionSheet({ title: `Delete “${l.name}”?`, msg: 'This list is deleted from your account on every phone.', actions: [{ label: 'Delete list', danger: true, fn: async () => {
+          try { await removeList(l.id); lists = lists.filter((y) => y.id !== l.id); dirty = false; useList(lists[0].id); toast('List deleted'); } catch (err) { toast(err.message); }
+        } }] });
+      }
+    });
+  }
+  function nameSheet({ title, sub, value, placeholder = '', actions }) {
+    showSheet(`<div class="sheet-card ed"><div class="ed-head"><span class="seal">≡</span><div><p class="t">${esc(title)}</p>${sub ? `<p class="s">${esc(sub)}</p>` : ''}</div></div>
+        <label class="fld"><span>List name</span><input id="lnName" value="${esc(value)}" placeholder="${esc(placeholder)}" maxlength="60" autocomplete="off"></label>
+        <div class="ed-foot" style="flex-wrap:wrap">${actions.map((a, i) => `<button class="btn ${a.quiet ? 'quiet' : 'primary'}" data-na="${i}">${esc(a.label)}</button>`).join('')}</div></div>
+      <button class="sheet-cancel" data-close>Cancel</button>`, (e) => {
+      const b = e.target.closest('[data-na]'); if (!b) return;
+      const nm = ($('lnName').value || '').trim();
+      if (!nm) { $('lnName').focus(); toast('Type a name first.'); return; }
+      closeSheet(); actions[+b.dataset.na].fn(nm);
+    });
+    setTimeout(() => $('lnName') && $('lnName').focus(), 60);
+  }
+  async function makeList(name, data) {
+    try { if (dirty) await flush(); const row = await createList(name, data); lists.push(row); useList(row.id); setTab('select'); toast(`Created “${name}”`); return row; }
+    catch (e) { toast(e.code === 'offline' ? 'You are offline. Try again when connected.' : e.message); }
+  }
+
   function openMenu() {
     const n = Object.keys(S.sel).length;
     const linkP = shareLink(), codeP = pack(S);
-    showSheet(`<div class="sheet-card"><p class="sheet-title">Share & backup</p>
-        <p class="sheet-msg">Your list is saved on this phone only. Send the parchi link to share it with family.</p>
+    const email = session && session.user ? session.user.email : '';
+    showSheet(`<div class="sheet-card"><p class="sheet-title">Share & account</p>
+        <p class="who">Logged in as <b>${esc(email)}</b></p>
         <button class="act" data-m="link">Send parchi to family</button>
         <button class="act" data-m="text">Copy list as text</button>
         <button class="act" data-m="backup">Copy backup code</button>
         <button class="act" data-m="restore">Restore from backup code</button>
-        <button class="act danger" data-m="wipe">Reset everything</button>
-        <p class="sheet-note">${n} item${n === 1 ? '' : 's'} on the parchi · works offline once opened</p></div>
+        <button class="act" data-m="lists">Your lists</button>
+        <button class="act danger" data-m="wipe">Clear this list</button>
+        <button class="act danger" data-m="out">Log out</button>
+        <p class="sheet-note">“${esc(curList() ? curList().name : '')}” · ${n} item${n === 1 ? '' : 's'} · saved to your account</p></div>
       <button class="sheet-cancel" data-close>Close</button>`, async (e) => {
       const b = e.target.closest('[data-m]'); if (!b) return;
       const m = b.dataset.m;
@@ -867,11 +1087,16 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
           catch (err) { toast('That code didn’t work. Copy the whole code and try again.'); }
         });
         setTimeout(() => $('rsCode') && $('rsCode').focus(), 60);
+      } else if (m === 'lists') {
+        openLists();
       } else if (m === 'wipe') {
         closeSheet();
-        actionSheet({ title: 'Reset everything?', msg: 'Clears picks, quantities, brands and items you added on this phone.', actions: [
-          { label: 'Reset everything', danger: true, fn: () => { S = norm(null); commit(); toast('Everything reset'); } },
+        actionSheet({ title: 'Clear this list?', msg: 'Clears picks, quantities, brands and items you added in this list.', actions: [
+          { label: 'Clear list', danger: true, fn: () => { S = norm(null); commit(); toast('List cleared'); } },
         ] });
+      } else if (m === 'out') {
+        closeSheet();
+        actionSheet({ title: 'Log out?', msg: 'Your lists stay safe in your account.', actions: [{ label: 'Log out', danger: true, fn: () => signOut(false) }] });
       }
     });
   }
@@ -1084,18 +1309,131 @@ h1 { margin: 0; font-size: 2.05rem; line-height: 1.05; font-weight: 700; letter-
 
   if (window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty('--hh', $('bar').offsetHeight + 'px')).observe($('bar'));
 
-  setTab(tab);
-  renderAll();
+  $('listBtn').addEventListener('click', openLists);
+
+  /* ── Login screen ── */
+  let authEmail = '', resendAt = 0, resendTimer = null;
+  const showErr = (id, msg) => { const el = $(id); el.textContent = msg || ''; el.hidden = !msg; };
+  function busy(btn, on, label) { btn.disabled = on; btn.innerHTML = on ? '<span class="spin"></span>' : esc(label); }
+  function friendly(e) {
+    const m = String(e && e.message || '');
+    if (e && e.code === 'offline') return 'No internet connection. Check your network and try again.';
+    if (/rate limit|security purposes|too many/i.test(m)) return 'Too many codes asked for. Wait a minute, then try again.';
+    if (/expired|invalid|otp/i.test(m) && e.status !== 429) return 'That code is wrong or has expired. Check the latest email, or resend the code.';
+    if (/not authorized|signups not allowed/i.test(m)) return 'This email can’t log in yet. Ask the site owner to check the email settings.';
+    return m || 'Something went wrong. Try again.';
+  }
+  function showScreen(which) {
+    $('boot').hidden = which !== 'boot';
+    $('auth').hidden = which !== 'auth';
+    $('app').hidden = $('tabbar').hidden = which !== 'app';
+    if (which !== 'app') $('cta').hidden = true;
+  }
+  function showAuth(step) {
+    signedIn = false; showScreen('auth'); closeSheet();
+    $('stepEmail').hidden = step === 'code'; $('stepCode').hidden = step !== 'code';
+    if (step === 'code') { $('sentTo').textContent = authEmail; setTimeout(() => $('authCode').focus(), 60); }
+    else { $('authEmail').value = authEmail || store.get('parchi-last-email', ''); }
+  }
+  function tickResend() {
+    const left = Math.ceil((resendAt - Date.now()) / 1000), b = $('resendBtn');
+    if (left > 0) { b.disabled = true; b.textContent = `Resend in ${left}s`; resendTimer = setTimeout(tickResend, 1000); }
+    else { b.disabled = false; b.textContent = 'Resend code'; }
+  }
+  async function sendCode() {
+    await call('/auth/v1/otp', { method: 'POST', body: { email: authEmail, create_user: true }, auth: false });
+    resendAt = Date.now() + 60000; clearTimeout(resendTimer); tickResend();
+  }
+  $('stepEmail').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const em = $('authEmail').value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { showErr('errEmail', 'Type a full email address, like name@gmail.com.'); return; }
+    showErr('errEmail', ''); authEmail = em; store.set('parchi-last-email', em);
+    busy($('sendBtn'), true);
+    try { await sendCode(); $('authCode').value = ''; showErr('errCode', ''); showAuth('code'); }
+    catch (err) { showErr('errEmail', friendly(err)); }
+    busy($('sendBtn'), false, 'Send login code');
+  });
+  $('stepCode').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const code = $('authCode').value.replace(/\D/g, '');
+    if (code.length < 6) { showErr('errCode', 'Type the code from the email.'); return; }
+    showErr('errCode', ''); busy($('verifyBtn'), true);
+    try {
+      keepSession(await call('/auth/v1/verify', { method: 'POST', body: { type: 'email', email: authEmail, token: code }, auth: false }));
+      await enterApp();
+    } catch (err) { showErr('errCode', friendly(err)); }
+    busy($('verifyBtn'), false, 'Log in');
+  });
+  $('authCode').addEventListener('input', () => { const v = $('authCode').value.replace(/\D/g, ''); if ($('authCode').value !== v) $('authCode').value = v; showErr('errCode', ''); });
+  $('changeEmail').addEventListener('click', () => { showErr('errEmail', ''); showAuth('email'); setTimeout(() => $('authEmail').focus(), 60); });
+  $('resendBtn').addEventListener('click', async () => {
+    $('resendBtn').disabled = true;
+    try { await sendCode(); toast('New code sent'); } catch (err) { showErr('errCode', friendly(err)); $('resendBtn').disabled = false; }
+  });
+
+  async function signOut(expired) {
+    const s = session;
+    if (s && !expired) { try { await fetch(API + '/auth/v1/logout', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + s.access_token } }); } catch (e) {} }
+    if (s && s.user) { try { localStorage.removeItem(CKEY(s.user.id)); } catch (e) {} }
+    session = null; lists = []; cur = null; dirty = false; clearTimeout(timer);
+    try { localStorage.removeItem(SKEY); } catch (e) {}
+    S = norm(null);
+    showAuth('email');
+    if (expired) showErr('errEmail', 'Your login expired. Log in again to see your lists.');
+  }
+
+  /* After login: open the person's lists (or make the first one) */
+  async function enterApp() {
+    const uid = session.user.id;
+    const cached = store.get(CKEY(uid), null);
+    let rows = null;
+    try { rows = await fetchLists(); }
+    catch (e) {
+      if (e.status === 401) { signOut(true); return; }
+      if (!cached || !cached.lists || !cached.lists.length) throw e;
+    }
+    if (rows) {
+      lists = rows;
+      if (!lists.length) {
+        const old = norm(store.get(LKEY, null));
+        const hasOld = Object.keys(old.sel).length || old.custom.length || old.cats.length || Object.keys(old.brand).length;
+        lists = [await createList('Monthly ration', hasOld ? old : norm(null))];
+        if (hasOld) { try { localStorage.removeItem(LKEY); } catch (e) {} setTimeout(() => toast('Your list from this phone is now saved in your account'), 400); }
+      }
+      setSync('synced');
+    } else {
+      lists = cached.lists; setSync('offline');
+    }
+    const want = store.get(LKEY + ':cur', null) || (cached && cached.cur);
+    signedIn = true;
+    showScreen('app');
+    useList(lists.find((l) => l.id === want) ? want : lists[0].id);
+    setTab(tab);
+    checkLink();
+  }
+
+  async function boot() {
+    if (!API || !KEY || /YOUR_/.test(API + KEY)) {
+      showScreen('auth'); $('stepEmail').hidden = false; $('stepCode').hidden = true;
+      showErr('errEmail', 'Login isn’t set up yet. The site owner needs to add the Supabase keys.');
+      $('sendBtn').disabled = true; return;
+    }
+    if (!session) { showAuth('email'); return; }
+    try { await enterApp(); }
+    catch (e) { if (session) { showAuth('email'); showErr('errEmail', friendly(e)); } }
+  }
 
   /* ── Opened from a parchi link sent by family ── */
   async function checkLink() {
+    if (!signedIn) return;
     if (!location.hash.startsWith('#p=')) return;
     const code = location.hash.slice(3);
     try { history.replaceState(null, '', siteUrl()); } catch (e) {}
     try { loadSheet(await unpack(code), 'This link'); } catch (e) { toast('This parchi link is incomplete. Ask for it to be sent again.'); }
   }
-  checkLink();
   window.addEventListener('hashchange', checkLink);
+  boot();
 
   /* ── One-time tip: add to the iPhone home screen ── */
   const standalone = navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
